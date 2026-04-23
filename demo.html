@@ -598,7 +598,7 @@
                 owner_name: exSite ? exSite.owner_name : u.name,
                 region: exSite ? exSite.region : u.region,
                 date: exSite ? exSite.date : new Date().toLocaleDateString(),
-                status: (st === 'UPDATE_V2' && exSite) ? exSite.status : st,
+                status: (st === 'UPDATE_V2' && exSite) ? (exSite.status || 'GATE3') : st,
                 thumb: currentThumb || (exSite ? exSite.thumb : 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'),
                 inner_images: window.currentInnerImages || (exSite ? exSite.inner_images : []),
                 name: (st === 'UPDATE_V2' && exSite) ? exSite.name : (ans['f1'] || 'Site mới'),
@@ -652,7 +652,7 @@
         window.addField = () => { const l = prompt('Tên cột:'); if(l){ const t = prompt('Loại (text, select, textarea):','text')||'text'; const fs=FormService.getFields(true); fs.push({id:'f'+Date.now(), label:l, type:t, is_active:true}); FormService.saveFields(fs); handleRoute(); }};
         window.mpsaPrompt = (id) => { const v = prompt('Nhập MPSA mới (Số):'); if(v) { const n = prompt('Ghi chú:'); SiteService.updateMPSA(id, v, n); location.reload(); }};
         window.ver2 = (id) => { if(confirm('Tạo Version 2 từ dữ liệu hiện tại?')){ SiteService.createVersion2(id); alert('Đã tạo V2! Giờ bạn có thể chỉnh sửa Version 2.'); location.reload(); }};
-        window.editV2 = (id) => { window.currentId = id; window.editingV2 = true; location.hash = '#create'; };
+        window.editV2 = (id) => { window.currentId = id; window.editingV2 = true; location.hash = '#create?id=' + id; };
         window.tf = (id, a) => { FormService.updateField(id,{is_active:a}); handleRoute(); };
 
         window.login = (role, loc, brand) => {
@@ -712,28 +712,21 @@
                 </div>`;
             
             const m = document.getElementById('m-view');
+            const params = new URLSearchParams(location.hash.split('?')[1]);
+            const idParam = params.get('id');
+
             if(hash === '#create') {
+                if (idParam) window.currentId = idParam;
                 m.innerHTML = CreateSiteView.render();
-                const id = new URLSearchParams(hFull.split('?')[1]).get('id');
-                if(id) {
-                    const s = SiteService.getSites().find(x=>x.id===id);
-                    if(s) { 
-                        FormService.getFields().forEach(f => {
-                            if(document.getElementById(f.id)) document.getElementById(f.id).value = s.answers ? s.answers[f.id] : '';
-                        });
-                        if(s.thumb && s.thumb.startsWith('data:image')){ document.getElementById('p-img').src=s.thumb; document.getElementById('p-ui').style.display='block'; document.getElementById('h-ui').style.display='none'; }
-                        window.currentInnerImages = s.inner_images || [];
-                        const prv = document.getElementById('multi-preview');
-                        if (prv) {
-                            prv.innerHTML = window.currentInnerImages.map(img => `<img src="${img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;">`).join('');
-                        }
-                        window.currentId = id;
-                    }
-                } else { window.currentId = null; window.currentInnerImages = []; window.lastB64 = null; }
-            } else if(hash === '#detail') m.innerHTML = DetailView.render();
-            else if(hash === '#sites') m.innerHTML = SiteListView.render();
-            else if(hash === '#settings') m.innerHTML = SettingsView.render();
-            else m.innerHTML = DashboardView.render();
+            } else if(hash === '#detail') {
+                m.innerHTML = DetailView.render();
+            } else if(hash === '#sites') {
+                m.innerHTML = SiteListView.render();
+            } else if(hash === '#settings') {
+                m.innerHTML = SettingsView.render();
+            } else {
+                m.innerHTML = DashboardView.render();
+            }
         }
         window.onhashchange = handleRoute;
         window.onload = handleRoute;
