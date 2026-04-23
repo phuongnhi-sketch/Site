@@ -55,7 +55,7 @@
     <script>
         // --- DATA LAYER ---
         const INIT_FIELDS = [
-            { id: 'f0', label: 'Brand (Nhãn hàng)', type: 'select', options: ['Highlands', 'Phở 24', 'Hard Rock'], is_active: true, req: true },
+            { id: 'f0', label: 'Brand (Nhãn hàng)', type: 'select', options: ['TPC', 'DQ', 'SW', 'CHANG'], is_active: true, req: true },
             { id: 'f1', label: 'Tên mặt bằng', type: 'text', is_active: true, req: true },
             { id: 'f2_1', label: 'Giá chào thuê Chưa thuế (Điền X,000,000)', type: 'text', is_active: true, req: true, num: true },
             { id: 'f2_2', label: 'Giá chào thuê Có thuế (Điền X,000,000)', type: 'text', is_active: true, req: true, num: true },
@@ -97,7 +97,7 @@
 
         const SiteService = {
             getSites: () => JSON.parse(localStorage.getItem('site_poc_sites')) || [
-                { id: '1', code: 'MB-2024-001', name: 'Nhà Thuốc 3/2', brand: 'Highlands', addr: 'Quận 10, HCM', thumb: 'https://images.unsplash.com/photo-1541339905195-266293a20131?w=400&h=400', region: 'SOUTH', price: 95000000, date: '15/04/2024', status: 'SUBMITTED', owner: 'system', comments: [], mpsa_history: [] }
+                { id: '1', code: 'MB-2024-001', name: 'Nhà Thuốc 3/2', brand: 'TPC', addr: 'Quận 10, HCM', thumb: 'https://images.unsplash.com/photo-1541339905195-266293a20131?w=400&h=400', region: 'SOUTH', price: 95000000, date: '15/04/2024', status: 'SUBMITTED', owner: 'system', comments: [], mpsa_history: [] }
             ],
             save: (site) => {
                 const ss = SiteService.getSites();
@@ -235,9 +235,11 @@
                     if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
                     if (u.role === 'BOD_L2') {
                         if (s.status === 'FINISH') return true;
-                        return s.brand === u.brand || s.answers?.f0 === u.brand;
+                        const sBrand = s.brand || s.answers?.f0;
+                        if (['DQ', 'SW'].includes(u.brand)) return ['DQ', 'SW'].includes(sBrand);
+                        return sBrand === u.brand;
                     }
-                    if (u.role === 'PROJECT') return s.status === 'GATE1' || s.status === 'FINISH';
+                    if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH'].includes(s.status);
                     return u.role === 'MB' ? s.region === u.region : false;
                 }).reverse();
 
@@ -310,6 +312,9 @@
                                         <button class="btn-ghost" style="padding:4px 12px; font-size:0.75rem; border-color:var(--accent-blue); color:var(--accent-blue)" onclick="window.viewV1=${showV2?true:false}; location.reload();">
                                             ${showV2 ? '👁️ Xem Version 1 (Gốc)' : '👁️ Quay lại Version 2'}
                                         </button>
+                                        ${(showV2 && u.role === 'ADMIN') ? `
+                                            <button class="btn-ghost" style="padding:4px 12px; font-size:0.75rem; background:var(--accent-blue); color:white; border:none" onclick="window.editV2('${site.id}')">✏️ Sửa Version 2</button>
+                                        ` : ''}
                                     ` : ''}
                                 </div>
                             </div>
@@ -410,7 +415,12 @@
                 const fs = FormService.getFields();
                 let ex = null;
                 if(window.currentId) {
-                    ex = SiteService.getSites().find(s => s.id === window.currentId);
+                    const site = SiteService.getSites().find(s => s.id === window.currentId);
+                    if (window.editingV2 && site && site.v2_data) {
+                        ex = { ...site, answers: site.v2_data };
+                    } else {
+                        ex = site;
+                    }
                 }
                 
                 setTimeout(() => {
@@ -437,7 +447,8 @@
                 return `
                     <div class="animate-fade-in" style="max-width:850px; margin: 0 auto;">
                         <h1 style="margin-bottom:2rem; font-family:var(--font-heading)">✍️ Soạn thảo hồ sơ mặt bằng</h1>
-                        <form class="glass" onsubmit="event.preventDefault(); window.save('SUBMITTED');" style="padding:4rem; border-radius:24px; display:flex; flex-direction:column; gap:2rem;">
+                        <form class="glass" onsubmit="event.preventDefault(); window.save(window.editingV2 ? 'UPDATE_V2' : 'SUBMITTED');" style="padding:4rem; border-radius:24px; display:flex; flex-direction:column; gap:2rem;">
+                            ${window.editingV2 ? '<div style="background:#FEF3C7; color:#B45309; padding:1rem; border-radius:12px; font-weight:700; text-align:center">⚠️ ĐANG CHỈNH SỬA VERSION 2 (DEAL DATA)</div>' : ''}
                             
                             ${fs.map(f => {
                                 let v = '';
@@ -566,17 +577,30 @@
                 }
             }
 
+            const ss = SiteService.getSites();
+            const exSite = window.currentId ? ss.find(s => s.id === window.currentId) : null;
+
             const site = {
-                id: window.currentId || Date.now().toString(), status: st, owner: u.id, owner_name: u.name, region: u.region, date: new Date().toLocaleDateString('vi-VN'),
+                id: window.currentId || Date.now().toString(),
+                owner: exSite ? exSite.owner : u.id,
+                owner_name: exSite ? exSite.owner_name : u.name,
+                region: exSite ? exSite.region : u.region,
+                date: exSite ? exSite.date : new Date().toLocaleDateString(),
+                status: (st === 'UPDATE_V2' && exSite) ? exSite.status : st,
                 thumb: currentThumb || 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400',
                 inner_images: window.currentInnerImages || (window.currentId ? (SiteService.getSites().find(s=>s.id===window.currentId)?.inner_images||[]) : []),
                 name: ans['f1'] || 'Site mới',
                 brand: ans['f0'] || '---',
                 price: parseFloat(ans['f2_2']?.toString().replace(/,/g,'')) || 0,
-                answers: ans,
-                code: (st === 'SUBMITTED' || st === 'GATE1') ? (window.currentId && SiteService.getSites().find(s=>s.id===window.currentId)?.code) || 'MB-' + Math.floor(Math.random()*9000+1000) : (window.currentId ? SiteService.getSites().find(s=>s.id===window.currentId)?.code : '')
+                answers: (st === 'UPDATE_V2' && exSite) ? exSite.answers : ans,
+                v2_data: (st === 'UPDATE_V2') ? ans : (exSite ? exSite.v2_data : null),
+                code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (window.currentId && SiteService.getSites().find(s=>s.id===window.currentId)?.code) || 'MB-' + Math.floor(Math.random()*9000+1000) : (window.currentId ? SiteService.getSites().find(s=>s.id===window.currentId)?.code : '')
             };
-            if (SiteService.save(site)) { alert('Đã lưu hồ sơ thành công!'); location.hash = '#sites'; }
+            if (SiteService.save(site)) { 
+                alert('Đã lưu hồ sơ thành công!'); 
+                window.editingV2 = false;
+                location.hash = (st === 'UPDATE_V2') ? '#detail?id='+site.id : '#sites'; 
+            }
         };
 
         window.prevMulti = async (input) => {
@@ -614,7 +638,8 @@
         window.delSite = (id) => { if(confirm('Bạn có chắc chắn muốn xóa hồ sơ mặt bằng này? Hành động này không thể hoàn tác.')) { let ss = JSON.parse(localStorage.getItem('site_poc_sites')) || []; ss = ss.filter(s => s.id !== id); localStorage.setItem('site_poc_sites', JSON.stringify(ss)); location.reload(); }};
         window.addField = () => { const l = prompt('Tên cột:'); if(l){ const t = prompt('Loại (text, select, textarea):','text')||'text'; const fs=FormService.getFields(true); fs.push({id:'f'+Date.now(), label:l, type:t, is_active:true}); FormService.saveFields(fs); handleRoute(); }};
         window.mpsaPrompt = (id) => { const v = prompt('Nhập MPSA mới (Số):'); if(v) { const n = prompt('Ghi chú:'); SiteService.updateMPSA(id, v, n); location.reload(); }};
-        window.ver2 = (id) => { if(confirm('Tạo Version 2 từ dữ liệu hiện tại?')){ SiteService.createVersion2(id); alert('Đã tạo V2!'); location.reload(); }};
+        window.ver2 = (id) => { if(confirm('Tạo Version 2 từ dữ liệu hiện tại?')){ SiteService.createVersion2(id); alert('Đã tạo V2! Giờ bạn có thể chỉnh sửa Version 2.'); location.reload(); }};
+        window.editV2 = (id) => { window.currentId = id; window.editingV2 = true; location.hash = '#create'; };
         window.tf = (id, a) => { FormService.updateField(id,{is_active:a}); handleRoute(); };
 
         window.login = (role, loc, brand) => {
@@ -639,8 +664,12 @@
                         </div>
                         <button onclick="window.login('BOD_L1', 'ALL')" class="btn-primary" style="width:100%; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; margin-bottom:12px; font-size:0.9rem">📈 BOD Level 1 (Global)</button>
                         <div style="display:flex; gap:10px; margin-bottom:12px;">
-                            <button onclick="window.login('BOD_L2', 'ALL', 'Highlands')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">☕ BOD Highlands</button>
-                            <button onclick="window.login('BOD_L2', 'ALL', 'Phở 24')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🍜 BOD Phở 24</button>
+                            <button onclick="window.login('BOD_L2', 'ALL', 'TPC')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🍗 BOD TPC</button>
+                            <button onclick="window.login('BOD_L2', 'ALL', 'CHANG')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🇹🇭 BOD CHANG</button>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-bottom:12px;">
+                            <button onclick="window.login('BOD_L2', 'ALL', 'DQ')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🍦 BOD DQ</button>
+                            <button onclick="window.login('BOD_L2', 'ALL', 'SW')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🥪 BOD SW</button>
                         </div>
                         <button onclick="window.login('PROJECT', 'ALL')" class="btn-primary" style="width:100%; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; font-size:0.9rem">👷 Team Project</button>
                     </div>

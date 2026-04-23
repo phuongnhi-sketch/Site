@@ -9,7 +9,7 @@ Tài liệu này mô tả chi tiết cấu trúc dữ liệu và quy trình nghi
 - **Trường Brand**: Quyết định quyền xem của BOD Level 2.
 
 ### Sites (Thực thể trung tâm)
-- **Thông tin Brand (Bắt buộc)**: Gắn liền với từng mặt bằng.
+- **Thông tin Brand (Bắt buộc)**: Gắn liền với từng mặt bằng (TPC, DQ, SW, CHANG).
 - **MPSA Estimate**: Admin có thể nhập và cập nhật nhiều lần, có lưu lịch sử.
 
 ### Site_Versions (New ⭐)
@@ -34,9 +34,9 @@ Hệ thống quản lý theo 3 Gate chính:
 - **MB**: Xem theo vùng miền (Region).
 - **BOD Level 1**: Xem tất cả.
 - **BOD Level 2**: 
-  - Trước khi Finish: Chỉ xem site thuộc Brand của mình.
+  - Trước khi Finish: Chỉ xem site thuộc Brand của mình (DQ và SW xem chung).
   - Sau khi Finish: Xem được tất cả Brand.
-- **Project**: Chỉ xem site ở Gate 1, bị che thông tin tài chính.
+- **Project**: Xem site từ Gate 1 đến Finish, bị che thông tin tài chính.
 
 ## 4. Thành phần Công nghệ (Tech Stack)
 - **Frontend**: Next.js + TypeScript + TailwindCSS (Khuyến nghị cho bản chính thức).

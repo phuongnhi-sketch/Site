@@ -39,7 +39,8 @@
 ## 8. Quy tắc Gate Pipeline & Bảo mật v2.0 ⭐ NEW
 - **Gate-based Workflow**: Mọi hồ sơ phải đi qua đủ 3 Gate (Survey -> Sitepack -> Deal) trước khi Finish.
 - **Finish Masking Rule**: Khi hồ sơ ở trạng thái **Finish**, giá thuê/cọc/điều khoản phải bị ẩn với tất cả user ngoại trừ Admin.
-- **Versioning Logic**: Tại Gate 3, dữ liệu Version 2 là dữ liệu chốt Deal, không được làm mất Version 1 (dữ liệu gốc).
+- **Versioning Logic**: Tại Gate 3, dữ liệu Version 2 là dữ liệu chốt Deal, không được làm mất Version 1 (dữ liệu gốc). **Admin có quyền chỉnh sửa nội dung Version 2** sau khi khởi tạo để khớp với thỏa thuận cuối cùng.
+- **Brand Grouping**: BOD Level 2 theo dõi site theo Brand (TPC, DQ, SW, CHANG). DQ và SW chia sẻ chung BOD Level 2, do đó người dùng thuộc 2 brand này có quyền xem chéo hồ sơ của nhau.
 - **Stage Labeling**: Mọi comment mới phải được gán nhãn Stage hiện tại để tra cứu bối cảnh lịch sử.
 
 ## 9. Quy tắc Git & Version Control ⭐ NEW
