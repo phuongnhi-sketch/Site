@@ -105,11 +105,24 @@
             ],
             save: (site) => {
                 const ss = SiteService.getSites();
+                const isNew = !ss.find(s => s.id === site.id);
                 const idx = ss.findIndex(s => s.id === site.id);
                 if (idx > -1) ss[idx] = { ...ss[idx], ...site };
                 else ss.push({ ...site, id: site.id || Date.now().toString(), comments: [] });
                 try {
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                    if (isNew) {
+                        const sBrand = site.brand || (site.answers && site.answers.f0);
+                        // Notify ADMIN
+                        NotificationService.add('admin-ALL', `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
+                        // Notify BODs of the same brand
+                        if (sBrand === 'DQ' || sBrand === 'SW') {
+                            NotificationService.add('bod_l2-ALL-DQ', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
+                            NotificationService.add('bod_l2-ALL-SW', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
+                        } else {
+                            NotificationService.add(`bod_l2-ALL-${sBrand}`, `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
+                        }
+                    }
                     return true;
                 } catch(e) {
                     alert('Lỗi: Trình duyệt bị đầy bộ nhớ (QuotaExceededError) do ảnh quá nhiều hoặc chưa được nén đủ. Không thể lưu hồ sơ.');
@@ -128,10 +141,20 @@
                             author: 'Hệ thống', 
                             text: commentText, 
                             date: new Date().toISOString(),
-                            stage: oldStatus // Lưu stage tại thời điểm comment
+                            stage: oldStatus 
                         });
                     }
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                    const sBrand = ss[idx].brand || (ss[idx].answers && ss[idx].answers.f0);
+                    // Notify Owner
+                    NotificationService.add(ss[idx].owner, `🔄 Hồ sơ ${ss[idx].name} chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
+                    // Notify BODs
+                    if (sBrand === 'DQ' || sBrand === 'SW') {
+                        NotificationService.add('bod_l2-ALL-DQ', `🔄 Hồ sơ ${ss[idx].name} (${sBrand}) chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
+                        NotificationService.add('bod_l2-ALL-SW', `🔄 Hồ sơ ${ss[idx].name} (${sBrand}) chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
+                    } else {
+                        NotificationService.add(`bod_l2-ALL-${sBrand}`, `🔄 Hồ sơ ${ss[idx].name} chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
+                    }
                 }
             },
             addComment: (id, text, author) => {
@@ -146,6 +169,13 @@
                         stage: ss[idx].status // Lưu stage tại thời điểm comment
                     });
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                    // Notify Owner & Admin if comment is from someone else
+                    if (author !== ss[idx].owner_name) {
+                        NotificationService.add(ss[idx].owner, `💬 ${author} vừa bình luận trong hồ sơ ${ss[idx].name}`, ss[idx].id);
+                    }
+                    if (author !== 'Chị Nhi') {
+                        NotificationService.add('admin-ALL', `💬 ${author} vừa bình luận trong hồ sơ ${ss[idx].name}`, ss[idx].id);
+                    }
                 }
             },
             updateMPSA: (id, value, note) => {
@@ -169,6 +199,21 @@
             getLatestData: (site) => {
                 return site.v2_data || site.answers || {};
             }
+        };
+
+        const NotificationService = {
+            getNotifs: () => JSON.parse(localStorage.getItem('site_poc_notifs')) || [],
+            add: (uId, msg, sId) => {
+                const ns = NotificationService.getNotifs();
+                ns.unshift({ id: Date.now(), uId, msg, sId, date: new Date().toISOString(), isRead: false });
+                localStorage.setItem('site_poc_notifs', JSON.stringify(ns.slice(0, 50))); // Keep 50
+            },
+            markRead: (id) => {
+                const ns = NotificationService.getNotifs();
+                const idx = ns.findIndex(n => n.id === id);
+                if(idx > -1) { ns[idx].isRead = true; localStorage.setItem('site_poc_notifs', JSON.stringify(ns)); }
+            },
+            getUnreadCount: (uId) => NotificationService.getNotifs().filter(n => n.uId === uId && !n.isRead).length
         };
 
         const store = {
@@ -254,7 +299,10 @@
                     <div class="animate-fade-in">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
                             <h1>📍 Danh sách hồ sơ</h1>
-                            <button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>
+                            <div style="display:flex; gap:10px">
+                                <button class="btn-ghost" style="padding:0 20px" onclick="window.exportCSV()">📊 Xuất Excel (CSV)</button>
+                                <button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>
+                            </div>
                         </div>
                         <div class="glass" style="border-radius:24px; overflow:hidden">
                             <table class="data-table">
@@ -758,6 +806,42 @@
         window.editV2 = (id) => { window.currentId = id; window.editingV2 = true; location.hash = '#create?id=' + id; };
         window.tf = (id, a) => { FormService.updateField(id,{is_active:a}); handleRoute(); };
 
+        window.exportCSV = () => {
+            const sites = SiteService.getSites();
+            const fields = FormService.getFields();
+            
+            let csv = '\uFEFF'; // BOM for Excel UTF-8
+            // Header
+            csv += 'ID,Code,Brand,Tên MB,Trạng thái,Vùng miền,Người nộp,Ngày nộp,Version,';
+            csv += fields.map(f => f.label).join(',') + '\n';
+            
+            sites.forEach(s => {
+                // Row V1
+                const row1 = [s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status], s.region, s.owner_name, s.date, 'V1'];
+                fields.forEach(f => {
+                    let val = s.answers ? s.answers[f.id] : '';
+                    row1.push('"' + (val || '').toString().replace(/"/g, '""') + '"');
+                });
+                csv += row1.join(',') + '\n';
+                
+                // Row V2 if exists
+                if (s.v2_data) {
+                    const row2 = [s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status], s.region, s.owner_name, s.date, 'V2'];
+                    fields.forEach(f => {
+                        let val = s.v2_data[f.id];
+                        row2.push('"' + (val || '').toString().replace(/"/g, '""') + '"');
+                    });
+                    csv += row2.join(',') + '\n';
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Site_Report_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        };
+
         window.login = (role, loc, brand) => {
             const user = { id: role.toLowerCase()+'-'+loc, name: role === 'ADMIN' ? 'Chị Nhi' : (role==='MB'?('Team MB '+loc) : (role==='BOD_L1'?'Sếp BOD Global':(role==='BOD_L2'?('Sếp BOD '+brand):'Team Project'))), role, region: loc, brand };
             localStorage.setItem('site_poc_user', JSON.stringify(user)); location.href = '#dashboard'; location.reload();
@@ -800,7 +884,13 @@
                 <div class="layout-container">
                     <nav class="navbar glass">
                         <div style="font-family:var(--font-heading); font-size:1.4rem; font-weight:700; color:var(--accent-blue)">🏢 Site Management Master POC</div>
-                        <div style="font-weight:700">${u.name} (${u.role})</div>
+                        <div style="display:flex; align-items:center; gap:1.5rem">
+                            <div style="position:relative; cursor:pointer" onclick="location.hash='#notifs'">
+                                <span style="font-size:1.5rem">🔔</span>
+                                ${NotificationService.getUnreadCount(u.id) > 0 ? `<span style="position:absolute; top:-5px; right:-5px; background:red; color:white; font-size:0.6rem; padding:2px 5px; border-radius:50%; font-weight:800">${NotificationService.getUnreadCount(u.id)}</span>` : ''}
+                            </div>
+                            <div style="font-weight:700">${u.name} (${u.role})</div>
+                        </div>
                     </nav>
                     <aside class="sidebar glass">
                         <div class="sidebar-menu">

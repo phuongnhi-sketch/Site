@@ -22,10 +22,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] Timeline gán nhãn Stage (Giai đoạn) cho từng comment.
 - [x] Quy tắc bảo mật: Ẩn giá thuê/cọc đối với Project và sau khi Finish.
 
-## 4. Việc đang làm (In Progress)
-- Đang kiểm thử các kịch bản phân quyền BOD Level 2.
+- [x] Triển khai Phase 4 mở rộng: Map View nâng cao (2026-04-23).
+- [ ] Triển khai Hệ thống thông báo (Notifications) theo Brand + Role.
 
 ## 5. Việc tiếp theo (Next Priorities)
-1. Triển khai Phase 4 mở rộng: Map View nâng cao (Filter theo Gate).
-2. Triển khai Hệ thống thông báo (Notifications) theo Brand + Role.
-3. Xuất báo cáo (Export Report) đa phiên bản (V1 & V2).
+1. Triển khai Hệ thống thông báo (Notifications) theo Brand + Role.
+2. Xuất báo cáo (Export Report) đa phiên bản (V1 & V2).
