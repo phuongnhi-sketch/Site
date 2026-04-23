@@ -42,6 +42,11 @@
 - **Versioning Logic**: Tại Gate 3, dữ liệu Version 2 là dữ liệu chốt Deal, không được làm mất Version 1 (dữ liệu gốc).
 - **Stage Labeling**: Mọi comment mới phải được gán nhãn Stage hiện tại để tra cứu bối cảnh lịch sử.
 
+## 9. Quy tắc Git & Version Control ⭐ NEW
+- **GitHub Sync**: Luôn phải `git add`, `git commit` và `git push` lên GitHub mỗi khi hoàn thành một version mới hoặc một task lớn.
+- **Commit Message**: Phải sử dụng tiếng Anh, mô tả rõ ràng các thay đổi (ví dụ: "Upgrade demo.html to v2.0 - Gate Pipeline").
+- **Branching**: Mặc định làm việc trên branch `master` hoặc `main` cho bản POC.
+
 ---
 **Trạng thái: ĐÃ KÍCH HOẠT (ACTIVE)**
 *Ngày cập nhật: 23/04/2026*
