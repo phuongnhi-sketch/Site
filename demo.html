@@ -499,7 +499,7 @@
 
                             <div style="display:flex; justify-content:flex-end; gap:16px;">
                                 <button type="button" class="btn-ghost" style="padding:1rem 2rem; border-radius:14px; background:#F1F5F9; border:none; color:#333;" onclick="window.save('DRAFT')">💾 Lưu lại Bản Nháp</button>
-                                <button type="button" class="btn-primary" style="padding:1rem 2.5rem; border-radius:14px; font-size:1.05rem;" onclick="window.save('SUBMITTED')">🚀 Nộp Hồ Sơ Ngay</button>
+                                <button type="button" class="btn-primary" style="padding:1rem 2.5rem; border-radius:14px; font-size:1.05rem;" onclick="window.save(window.editingV2 ? 'UPDATE_V2' : 'SUBMITTED')">🚀 ${window.editingV2 ? 'Cập nhật Version 2' : 'Nộp Hồ Sơ Ngay'}</button>
                             </div>
                         </form>
                     </div>`;
