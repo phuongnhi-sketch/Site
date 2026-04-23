@@ -596,18 +596,19 @@
                 region: exSite ? exSite.region : u.region,
                 date: exSite ? exSite.date : new Date().toLocaleDateString(),
                 status: (st === 'UPDATE_V2' && exSite) ? exSite.status : st,
-                thumb: currentThumb || 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400',
-                inner_images: window.currentInnerImages || (window.currentId ? (SiteService.getSites().find(s=>s.id===window.currentId)?.inner_images||[]) : []),
+                thumb: currentThumb || (exSite ? exSite.thumb : 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'),
+                inner_images: window.currentInnerImages || (exSite ? exSite.inner_images : []),
                 name: ans['f1'] || 'Site mới',
                 brand: ans['f0'] || '---',
                 price: parseFloat(ans['f2_2']?.toString().replace(/,/g,'')) || 0,
                 answers: (st === 'UPDATE_V2' && exSite) ? exSite.answers : ans,
                 v2_data: (st === 'UPDATE_V2') ? ans : (exSite ? exSite.v2_data : null),
-                code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (window.currentId && SiteService.getSites().find(s=>s.id===window.currentId)?.code) || 'MB-' + Math.floor(Math.random()*9000+1000) : (window.currentId ? SiteService.getSites().find(s=>s.id===window.currentId)?.code : '')
+                code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (exSite?.code || 'MB-' + Math.floor(Math.random()*9000+1000)) : (exSite ? exSite.code : '')
             };
             if (SiteService.save(site)) { 
                 alert('Đã lưu hồ sơ thành công!'); 
                 window.editingV2 = false;
+                window.currentId = null;
                 location.hash = (st === 'UPDATE_V2') ? '#detail?id='+site.id : '#sites'; 
             }
         };
@@ -659,7 +660,15 @@
         function handleRoute() {
             const u = JSON.parse(localStorage.getItem('site_poc_user'));
             const hash = location.hash.split('?')[0] || (u ? '#dashboard' : '#login');
-            const hFull = location.hash;
+            
+            // Reset states on route change unless staying in same view
+            if (!location.hash.startsWith('#create')) {
+                window.currentId = null;
+                window.editingV2 = false;
+            }
+            if (!location.hash.startsWith('#detail')) {
+                window.viewV1 = false;
+            }
             const app = document.getElementById('app');
 
             if(!u) { app.innerHTML = `
