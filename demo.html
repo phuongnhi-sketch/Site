@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Management - MASTER POC v2.0 (Pipeline & Versioning)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1E293B; --accent-blue: #2563EB; --accent-azure: #0EA5E9;
+            --bg-main: #F8FAFC; --text-main: #1E293B; --text-muted: #64748B;
+            --border-glass: rgba(0, 0, 0, 0.05); --grad-primary: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+            --radius-md: 16px; --radius-lg: 24px; --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.04);
+            --font-heading: 'Outfit', sans-serif; --font-body: 'Inter', sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: var(--font-body); background: var(--bg-main); color: var(--text-main); min-height: 100vh; overflow: hidden; }
+        .glass { background: rgba(255,255,255,0.78); backdrop-filter: blur(25px); border: 1px solid var(--border-glass); box-shadow: var(--shadow-soft); }
+        .layout-container { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 80px 1fr; height: 100vh; padding: 1.5rem; gap: 1.5rem; }
+        .navbar { grid-column: 1 / span 2; border-radius:18px; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; }
+        .sidebar { border-radius: 18px; display: flex; flex-direction: column; padding: 0.8rem; }
+        .menu-item { display:flex; align-items:center; gap:1.1rem; padding:1.1rem 1.4rem; border-radius:14px; color:var(--text-muted); text-decoration:none; transition:0.3s; font-weight:600; cursor:pointer; }
+        .menu-item.active { background: white; color: var(--accent-blue); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+        .main-content { border-radius: 18px; padding: 2rem; overflow-y: auto; }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; background:white; }
+        .data-table th { padding: 1.2rem; background:#F8FAFC; color:var(--text-muted); font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border-glass); }
+        .data-table td { padding: 1.1rem; border-bottom:1px solid var(--border-glass); font-size:0.9rem; }
+        
+        .status-pill { padding: 0.4rem 1rem; border-radius: 100px; font-size:0.7rem; font-weight:700; text-transform:uppercase; border: 1px solid rgba(0,0,0,0.05); }
+        .status-DRAFT { background: #F1F5F9; color: #64748B; }
+        .status-SUBMITTED { background: #E0F2FE; color: #0369A1; }
+        .status-GATE1 { background: #F3E8FF; color: #7E22CE; } /* Survey */
+        .status-GATE2 { background: #DBEAFE; color: #1E40AF; } /* Sitepack */
+        .status-GATE3 { background: #FEF3C7; color: #B45309; } /* Deal */
+        .status-FINISH { background: #DCFCE7; color: #15803D; } /* Complete */
+        
+        .btn-primary { background: var(--grad-primary); color: white; padding: 1rem; border: none; border-radius: 14px; font-weight: 700; cursor:pointer; }
+        .btn-ghost { background: none; border: 1px solid #ddd; padding: 0.6rem 1rem; border-radius: 10px; cursor:pointer; font-weight:600; }
+        
+        .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+        
+        /* Specific detail styles */
+        .comment-item { margin-bottom: 1.2rem; padding: 1rem; border-radius: 12px; background: #F8FAFC; border: 1px solid #f1f1f1; }
+        
+        /* Hide arrows for number inputs */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // --- DATA LAYER ---
+        const INIT_FIELDS = [
+            { id: 'f0', label: 'Brand (Nhãn hàng)', type: 'select', options: ['Highlands', 'Phở 24', 'Hard Rock'], is_active: true, req: true },
+            { id: 'f1', label: 'Tên mặt bằng', type: 'text', is_active: true, req: true },
+            { id: 'f2_1', label: 'Giá chào thuê Chưa thuế (Điền X,000,000)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f2_2', label: 'Giá chào thuê Có thuế (Điền X,000,000)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f2_3', label: 'Bên nào khai và trả thuế', type: 'select', options: ['Chủ nhà', 'QSR'], is_active: true, req: true },
+            { id: 'f3', label: 'Link Google Map', type: 'text', is_active: true, req: true },
+            { id: 'f4', label: 'Kích thước mặt tiền m (Chỉ điền SỐ)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f5', label: 'Tổng diện tích m2 (Chỉ điền SỐ)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f6', label: 'Địa chỉ chi tiết', type: 'text', is_active: true, req: true },
+            { id: 'f7', label: 'Phương án thanh toán & cọc', type: 'textarea', is_active: true, req: true },
+            { id: 'f8', label: 'Biên độ tăng giảm giá', type: 'textarea', is_active: true, req: true },
+            { id: 'f9', label: 'Kết cấu, hiện trạng', type: 'textarea', is_active: true, req: true },
+            { id: 'f10_1', label: 'Thời gian miễn phí xây dựng', type: 'textarea', is_active: true, req: true },
+            { id: 'f10_2', label: 'Thời gian nhận mặt bằng', type: 'textarea', is_active: true, req: true },
+            { id: 'f11', label: 'Điều kiện kỹ thuật (Điện, PCCC...)', type: 'textarea', is_active: true, req: true },
+            { id: 'f12', label: 'Lưu ý khác', type: 'textarea', is_active: true, req: false }
+        ];
+
+        const STATUS_LABELS = {
+            'DRAFT': 'Draft',
+            'SUBMITTED': 'Submitted',
+            'GATE1': 'Survey',
+            'GATE2': 'Sitepack',
+            'GATE3': 'Deal',
+            'FINISH': 'Complete'
+        };
+
+        const FormService = {
+            getFields: (all = false) => {
+                const fs = JSON.parse(localStorage.getItem('site_poc_fields_v7')) || INIT_FIELDS;
+                return all ? fs : fs.filter(f => f.is_active);
+            },
+            saveFields: (fs) => localStorage.setItem('site_poc_fields_v7', JSON.stringify(fs)),
+            updateField: (id, updates) => {
+                const fs = FormService.getFields(true);
+                const idx = fs.findIndex(f => f.id === id);
+                if (idx > -1) { fs[idx] = { ...fs[idx], ...updates }; FormService.saveFields(fs); }
+            }
+        };
+
+        const SiteService = {
+            getSites: () => JSON.parse(localStorage.getItem('site_poc_sites')) || [
+                { id: '1', code: 'MB-2024-001', name: 'Nhà Thuốc 3/2', brand: 'Highlands', addr: 'Quận 10, HCM', thumb: 'https://images.unsplash.com/photo-1541339905195-266293a20131?w=400&h=400', region: 'SOUTH', price: 95000000, date: '15/04/2024', status: 'SUBMITTED', owner: 'system', comments: [], mpsa_history: [] }
+            ],
+            save: (site) => {
+                const ss = SiteService.getSites();
+                const idx = ss.findIndex(s => s.id === site.id);
+                if (idx > -1) ss[idx] = { ...ss[idx], ...site };
+                else ss.push({ ...site, id: site.id || Date.now().toString(), comments: [] });
+                try {
+                    localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                    return true;
+                } catch(e) {
+                    alert('Lỗi: Trình duyệt bị đầy bộ nhớ (QuotaExceededError) do ảnh quá nhiều hoặc chưa được nén đủ. Không thể lưu hồ sơ.');
+                    return false;
+                }
+            },
+            updateStatus: (id, status, commentText) => {
+                const ss = SiteService.getSites();
+                const idx = ss.findIndex(s => s.id === id);
+                if (idx > -1) {
+                    const oldStatus = ss[idx].status;
+                    ss[idx].status = status;
+                    if (commentText) {
+                        if(!ss[idx].comments) ss[idx].comments = [];
+                        ss[idx].comments.push({ 
+                            author: 'Hệ thống', 
+                            text: commentText, 
+                            date: new Date().toISOString(),
+                            stage: oldStatus // Lưu stage tại thời điểm comment
+                        });
+                    }
+                    localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                }
+            },
+            addComment: (id, text, author) => {
+                const ss = SiteService.getSites();
+                const idx = ss.findIndex(s => s.id === id);
+                if (idx > -1) {
+                    if(!ss[idx].comments) ss[idx].comments = [];
+                    ss[idx].comments.push({ 
+                        author, 
+                        text, 
+                        date: new Date().toISOString(),
+                        stage: ss[idx].status // Lưu stage tại thời điểm comment
+                    });
+                    localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                }
+            },
+            updateMPSA: (id, value, note) => {
+                const ss = SiteService.getSites();
+                const idx = ss.findIndex(s => s.id === id);
+                if (idx > -1) {
+                    if(!ss[idx].mpsa_history) ss[idx].mpsa_history = [];
+                    ss[idx].mpsa_history.push({ value, note, date: new Date().toISOString() });
+                    ss[idx].current_mpsa = value;
+                    localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                }
+            },
+            createVersion2: (id) => {
+                const ss = SiteService.getSites();
+                const idx = ss.findIndex(s => s.id === id);
+                if (idx > -1) {
+                    ss[idx].v2_data = { ...ss[idx].answers };
+                    localStorage.setItem('site_poc_sites', JSON.stringify(ss));
+                }
+            }
+        };
+
+        const store = {
+            state: { user: JSON.parse(localStorage.getItem('site_poc_user')) },
+            getState() { return this.state; }
+        };
+
+        // --- VIEWS ---
+        const DashboardView = { render: () => {
+            const u = store.getState().user;
+            const ss = SiteService.getSites();
+            const mySites = ss.filter(s => s.owner === u.id);
+            const total = ss.length;
+            const submitted = ss.filter(s => s.status === 'SUBMITTED').length;
+            const gate1 = ss.filter(s => s.status === 'GATE1').length;
+            const gate2 = ss.filter(s => s.status === 'GATE2').length;
+            const gate3 = ss.filter(s => s.status === 'GATE3').length;
+            const finished = ss.filter(s => s.status === 'FINISH').length;
+            const draft = ss.filter(s => s.status === 'DRAFT').length;
+
+            const feedbackCount = mySites.filter(s => (s.status === 'DRAFT' || s.status === 'GATE1') && s.comments && s.comments.length > 0).length;
+
+            return `
+            <div class="animate-fade-in">
+                ${(u.role === 'MB' && feedbackCount > 0) ? `
+                <div style="background:#FEF2F2; border-left:4px solid #EF4444; padding:1.5rem; border-radius:12px; margin-bottom:2rem; box-shadow:var(--shadow-soft); display:flex; align-items:center; gap:1rem;">
+                    <span style="font-size:2.5rem;">🔔</span>
+                    <div>
+                        <h3 style="color:#991B1B; margin-bottom:0.2rem;">Thông báo phản hồi</h3>
+                        <p style="color:#B91C1C;">Bạn có <strong>${feedbackCount}</strong> hồ sơ đang có phản hồi/yêu cầu sửa từ sếp. Vui lòng kiểm tra danh sách hồ sơ!</p>
+                    </div>
+                </div>` : ''}
+                <div class="glass" style="padding:3.5rem; border-radius:30px; background:var(--grad-primary); color:white; margin-bottom:2.5rem; box-shadow:0 15px 40px rgba(37,99,235,0.15)">
+                    <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào Nhi!</h1>
+                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v1.8 đang hoạt động ổn định.</p>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem">
+                    <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-blue)">
+                        <h2 style="font-size:2.5rem; color:var(--primary-color)">${submitted}</h2>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Submitted</p>
+                    </div>
+                    <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #7E22CE">
+                        <h2 style="font-size:2.5rem; color:var(--primary-color)">${gate1}</h2>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Survey (Gate 1)</p>
+                    </div>
+                    <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-azure)">
+                        <h2 style="font-size:2.5rem; color:var(--primary-color)">${gate2}</h2>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Sitepack (Gate 2)</p>
+                    </div>
+                    <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #B45309">
+                        <h2 style="font-size:2.5rem; color:var(--primary-color)">${gate3}</h2>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Deal (Gate 3)</p>
+                    </div>
+                    <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #10B981">
+                        <h2 style="font-size:2.5rem; color:var(--primary-color)">${finished}</h2>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Complete (Finish)</p>
+                    </div>
+                    <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #64748B">
+                        <h2 style="font-size:2.5rem; color:var(--primary-color)">${draft}</h2>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Bản nháp</p>
+                    </div>
+                </div>
+            </div>`; 
+        } };
+
+        const SiteListView = {
+            render: () => {
+                const u = store.getState().user;
+                const sites = SiteService.getSites().filter(s => {
+                    if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
+                    if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
+                    if (u.role === 'BOD_L2') {
+                        if (s.status === 'FINISH') return true;
+                        return s.brand === u.brand || s.answers?.f0 === u.brand;
+                    }
+                    if (u.role === 'PROJECT') return s.status === 'GATE1' || s.status === 'FINISH';
+                    return u.role === 'MB' ? s.region === u.region : false;
+                }).reverse();
+
+                return `
+                    <div class="animate-fade-in">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
+                            <h1>📍 Danh sách hồ sơ</h1>
+                            <button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>
+                        </div>
+                        <div class="glass" style="border-radius:24px; overflow:hidden">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>Mặt tiền</th><th>Tên MB</th><th>Brand</th><th>Giá thuê (Có Thuế)</th><th>Người nộp</th><th>Ngày nộp</th><th><div style="font-size:0.65rem">DiỆN TÍCH /</div>MẶT TIỀN</th><th>Địa chỉ (Map)</th><th>Trạng thái</th><th>Miền</th><th>Thao tác</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${sites.map(s => `
+                                        <tr>
+                                            <td>
+                                                <img src="${s.thumb}" onerror="this.src='https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'" style="width:65px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
+                                            </td>
+                                            <td><strong>${s.name}</strong></td>
+                                            <td><span style="font-weight:600; color:#555">${s.brand || s.answers?.f0 || '---'}</span></td>
+                                            <td style="font-weight:700; color:var(--accent-blue)">
+                                                ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN')) ? '*******' : (s.answers?.f2_2 ? (isNaN(parseFloat(s.answers.f2_2.replace(/,/g,''))) ? s.answers.f2_2 : parseFloat(s.answers.f2_2.replace(/,/g,'')).toLocaleString() + ' đ') : (s.price || '---'))}
+                                            </td>
+                                            <td>${s.owner_name || s.owner}</td>
+                                            <td>${s.date}</td>
+                                            <td>
+                                                <div style="font-size:0.8rem"><strong>S:</strong> ${s.answers?.f5 || '---'} m2</div>
+                                                <div style="font-size:0.8rem"><strong>W:</strong> ${s.answers?.f4 || '---'} m</div>
+                                            </td>
+                                            <td>${s.answers?.f3 ? `<a href="${s.answers.f3}" target="_blank" style="color:var(--accent-blue); text-decoration:none;">📍 Xem Map</a>` : '---'}</td>
+                                            <td><span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span></td>
+                                            <td><span style="font-size:0.75rem; font-weight:800; color:#555">${s.region}</span></td>
+                                            <td>
+                                                <div style="display:flex; gap:6px">
+                                                    ${s.status === 'DRAFT' ? `<button onclick="location.hash='#create?id=${s.id}'" class="btn-primary" style="padding:6px 12px; border-radius:10px; font-size:0.8rem; height:fit-content;">Sửa</button>` : ''}
+                                                    <button class="btn-ghost" style="padding:6px 12px; font-size:0.8rem; height:fit-content;" onclick="location.hash='#detail?id=${s.id}'">Xem</button>
+                                                    ${u.role === 'ADMIN' ? `<button class="btn-ghost" style="padding:6px 12px; font-size:0.8rem; height:fit-content; background:#FEE2E2; color:#B91C1C; border:none;" onclick="window.delSite('${s.id}')">Xóa</button>` : ''}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            }
+        };
+
+        const DetailView = {
+            render: () => {
+                const u = store.getState().user;
+                const id = new URLSearchParams(location.hash.split('?')[1]).get('id');
+                const site = SiteService.getSites().find(s => s.id === id);
+                if(!site) return '<h1>Không tìm thấy hồ sơ</h1>';
+
+                // Versioning logic
+                const showV2 = site.v2_data && !window.viewV1;
+                const data = showV2 ? site.v2_data : (site.answers || {});
+
+                return `
+                    <div class="animate-fade-in">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem">
+                            <div>
+                                <h1 style="margin-bottom:0.4rem">Chi tiết: ${site.name}</h1>
+                                <div style="display:flex; gap:10px; align-items:center">
+                                    <span class="status-pill status-${site.status}" style="font-size:0.9rem; padding:0.4rem 1.2rem">${STATUS_LABELS[site.status]}</span>
+                                    ${site.v2_data ? `
+                                        <button class="btn-ghost" style="padding:4px 12px; font-size:0.75rem; border-color:var(--accent-blue); color:var(--accent-blue)" onclick="window.viewV1=${showV2?true:false}; location.reload();">
+                                            ${showV2 ? '👁️ Xem Version 1 (Gốc)' : '👁️ Quay lại Version 2'}
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div style="text-align:right">
+                                <div style="font-size:0.8rem; color:var(--text-muted); font-weight:700">VERSION ĐANG XEM</div>
+                                <div style="font-size:1.2rem; font-weight:800; color:var(--accent-blue)">${showV2 ? 'VERSION 2 (DEAL)' : 'VERSION 1 (ORIGINAL)'}</div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 380px; gap:2rem">
+                            <!-- Main Info -->
+                            <div class="glass" style="padding:2.5rem; border-radius:28px">
+                                <img src="${site.thumb}" style="width:100%; border-radius:18px; margin-bottom:2rem; box-shadow:var(--shadow-soft)">
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem">
+                                    ${FormService.getFields().map(f => {
+                                        const v = data[f.id] || (f.id==='f1'?site.name : (f.id==='f2_2'?site.price:''));
+                                        if (!v && !f.req) return '';
+                                        
+                                        // Masking logic
+                                        const isFinancial = ['f2_1', 'f2_2', 'f7', 'f8'].includes(f.id);
+                                        const hideMask = (u.role === 'PROJECT') || (site.status === 'FINISH' && u.role !== 'ADMIN');
+                                        const displayValue = (isFinancial && hideMask) ? '*******' : ((f.num && v && !isNaN(parseFloat(v.toString().replace(/,/g,'')))) ? parseFloat(v.toString().replace(/,/g,'')).toLocaleString() : (v||'---'));
+
+                                        return `<div ${f.type==='textarea'?'style="grid-column: 1/span 2"':''}><label style="color:var(--text-muted); font-size:0.7rem; font-weight:700">${f.label.toUpperCase()}</label><p style="font-size:1rem; font-weight:600; margin-top:0.3rem; word-break:break-word; line-height:1.5">${f.id==='f3'&&v ? `<a href="${v}" target="_blank">📍 Mở Bản Đồ</a>` : displayValue}</p></div>`;
+                                    }).join('')}
+                                </div>
+                                ${site.inner_images && site.inner_images.length > 0 ? `
+                                    <div style="margin-top:2.5rem">
+                                        <label style="color:var(--text-muted); font-size:0.85rem; font-weight:700; margin-bottom:1rem; display:block">📸 HÌNH ẢNH MẶT BẰNG BÊN TRONG</label>
+                                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
+                                            ${site.inner_images.map(img => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:12px; cursor:pointer; border:1px solid #ddd" onclick="window.open(this.src)">`).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                ${u.role === 'MB' && site.status !== 'DRAFT' && site.status !== 'FINISH' ? `
+                                    <div style="margin-top:2rem; padding:1.5rem; background:#F8FAFC; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center">
+                                        <div>💡 <strong>Hồ sơ đang khóa.</strong> Cần sửa dữ liệu?</div>
+                                        <button class="btn-ghost" style="background:var(--accent-azure); color:white; border:none" onclick="window.reqEdit('${site.id}')">Gửi yêu cầu sửa</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <!-- Sidebar: Discussion & Approval -->
+                            <div class="detail-sidebar glass" style="padding:1.5rem; border-radius:28px; display:flex; flex-direction:column">
+                                <h3 style="margin-bottom:1.2rem">Phê duyệt & Thảo luận</h3>
+                                
+                                <!-- MPSA Section -->
+                                <div style="padding:1rem; background:white; border:1px solid #eee; border-radius:14px; margin-bottom:1.2rem">
+                                    <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:0.5rem">MPSA ESTIMATE</label>
+                                    <div style="font-size:1.2rem; font-weight:800; color:var(--accent-blue); margin-bottom:0.5rem">
+                                        ${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString() + ' đ' : '---'}
+                                    </div>
+                                    ${u.role === 'ADMIN' ? `
+                                        <button class="btn-ghost" style="width:100%; font-size:0.75rem; padding:6px" onclick="window.mpsaPrompt('${site.id}')">Update MPSA</button>
+                                    ` : ''}
+                                    ${site.mpsa_history && site.mpsa_history.length > 0 ? `
+                                        <div style="margin-top:0.8rem; font-size:0.7rem; color:var(--text-muted); max-height:80px; overflow-y:auto; padding-top:0.5rem; border-top:1px solid #f1f1f1">
+                                            <strong>Lịch sử cập nhật:</strong><br>
+                                            ${site.mpsa_history.map(h => `- ${new Date(h.date).toLocaleDateString()}: ${parseFloat(h.value).toLocaleString()} đ`).join('<br>')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                ${(u.role === 'ADMIN' || u.role === 'BOD_L1' || u.role === 'BOD_L2') ? `
+                                    <div style="padding:1rem; background:#EFF6FF; border-radius:14px; margin-bottom:1.2rem">
+                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CHUYỂN GATE / TRẠNG THÁI</label>
+                                        <div style="display:flex; flex-wrap:wrap; gap:6px">
+                                            <button onclick="window.upStatus('${site.id}','GATE1')" class="btn-ghost" style="font-size:0.7rem; background:#F3E8FF; color:#7E22CE">👷 Survey</button>
+                                            <button onclick="window.upStatus('${site.id}','GATE2')" class="btn-ghost" style="font-size:0.7rem; background:#DBEAFE; color:#1E40AF">📦 Sitepack</button>
+                                            <button onclick="window.upStatus('${site.id}','GATE3')" class="btn-ghost" style="font-size:0.7rem; background:#FEF3C7; color:#B45309">🤝 Deal</button>
+                                            <button onclick="window.upStatus('${site.id}','FINISH')" class="btn-ghost" style="font-size:0.7rem; background:#DCFCE7; color:#15803D">🏆 Finish</button>
+                                            ${u.role === 'ADMIN' && site.status === 'GATE3' ? `
+                                                <button onclick="window.ver2('${site.id}')" class="btn-ghost" style="font-size:0.7rem; background:#fff; border-color:var(--accent-azure); color:var(--accent-azure)">⭐ Create V2</button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                <div id="comments-box" style="flex:1; overflow-y:auto; margin-bottom:1.2rem">
+                                    ${(site.comments || []).map(c => `
+                                        <div class="comment-item" style="position:relative">
+                                            ${c.stage ? `<span style="position:absolute; top:8px; right:8px; font-size:0.6rem; font-weight:800; background:#eee; padding:2px 6px; border-radius:4px;">${STATUS_LABELS[c.stage]}</span>` : ''}
+                                            <strong>${c.author}</strong> <small style="display:block; color:#999; font-size:0.7rem">${new Date(c.date).toLocaleString()}</small>
+                                            <p style="margin-top:5px; font-size:0.85rem">${c.text}</p>
+                                        </div>
+                                    `).join('')}
+                                    ${(!site.comments || site.comments.length === 0) ? '<p style="text-align:center; color:#ccc">Chưa có bình luận.</p>' : ''}
+                                </div>
+                                <div>
+                                    <textarea id="msg" style="width:100%; border-radius:12px; padding:0.8rem; border:1px solid #ddd; margin-bottom:0.8rem" placeholder="Viết nhận xét..."></textarea>
+                                    <button class="btn-primary" style="width:100%" onclick="window.doComment('${site.id}')">Gửa nhận xét</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        };
+
+        const CreateSiteView = {
+            render: () => {
+                const fs = FormService.getFields();
+                let ex = null;
+                if(window.currentId) {
+                    ex = SiteService.getSites().find(s => s.id === window.currentId);
+                }
+                
+                setTimeout(() => {
+                    if (ex && ex.thumb && !ex.thumb.includes('unsplash.com')) {
+                        const pi = document.getElementById('p-img');
+                        if (pi) {
+                            pi.src = ex.thumb;
+                            document.getElementById('p-ui').style.display='block';
+                            document.getElementById('h-ui').style.display='none';
+                            window.lastB64 = ex.thumb;
+                        }
+                    } else {
+                        window.lastB64 = null;
+                    }
+                    if (ex && ex.inner_images && ex.inner_images.length > 0) {
+                        window.currentInnerImages = [...ex.inner_images];
+                        const prv = document.getElementById('multi-preview');
+                        if(prv) prv.innerHTML = window.currentInnerImages.map(img => `<img src="${img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;">`).join('');
+                    } else {
+                        window.currentInnerImages = [];
+                    }
+                }, 50);
+
+                return `
+                    <div class="animate-fade-in" style="max-width:850px; margin: 0 auto;">
+                        <h1 style="margin-bottom:2rem; font-family:var(--font-heading)">✍️ Soạn thảo hồ sơ mặt bằng</h1>
+                        <form class="glass" onsubmit="event.preventDefault(); window.save('SUBMITTED');" style="padding:4rem; border-radius:24px; display:flex; flex-direction:column; gap:2rem;">
+                            
+                            ${fs.map(f => {
+                                let v = '';
+                                if(ex && ex.answers && ex.answers[f.id]) v = ex.answers[f.id];
+                                else if(ex && f.id==='f1') v = ex.name;
+                                else if(ex && f.id==='f2_2') v = ex.price;
+                                
+                                return `<div class="form-group">
+                                    <label style="display:block; font-weight:700; margin-bottom:0.8rem; color:var(--primary-color);">${f.label} ${f.req ? '<span style="color:red">*</span>':''}</label>
+                                    ${f.type === 'textarea' ? 
+                                    `<textarea id="${f.id}" rows="3" placeholder="Nhập ${f.label}..." style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem; font-family:inherit; resize:vertical;">${v}</textarea>` 
+                                    : (f.type === 'select' ? 
+                                    `<select id="${f.id}" style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem; font-family:inherit;"><option value="">-- Chọn --</option>${(f.options||[]).map(o=>`<option value="${o}" ${v===o?'selected':''}>${o}</option>`).join('')}</select>`
+                                    : `<input id="${f.id}" type="${f.type}" value="${v}" placeholder="Nhập ${f.label}..." style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem;">` )}
+                                </div>`;
+                            }).join('')}
+
+                            <div class="form-group">
+                                <label style="display:block; font-weight:700; margin-bottom:0.8rem; color:var(--primary-color);">Ảnh mặt tiền thật (1 ảnh Thumbnail)</label>
+                                <div class="glass" style="border:2px dashed #CBD5E1; border-radius:20px; padding:3.5rem; text-align:center; cursor:pointer; background:#F8FAFC; transition:all 0.3s;" onclick="document.getElementById('input-fp').click()" onmouseover="this.style.borderColor='var(--accent-blue)'; this.style.background='#EFF6FF'" onmouseout="this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC'">
+                                    <input id="input-fp" type="file" accept="image/*" style="display:none" onchange="window.prev(this)">
+                                    <div id="p-ui" style="display:none"><img id="p-img" style="width:100%; border-radius:16px; max-height:450px; object-fit:cover; box-shadow:var(--shadow-soft);"></div>
+                                    <div id="h-ui"><span style="font-size:3.5rem">📸</span><p style="margin-top:1.2rem; font-weight:600; color:var(--accent-blue);">Bấm vào đây để tải ảnh mặt tiền</p><p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">(Bắt buộc)</p></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label style="display:block; font-weight:700; margin-bottom:0.8rem; color:var(--primary-color);">Hình ảnh mặt bằng bên trong (Nhiều ảnh)</label>
+                                <div style="background:#F8FAFC; padding:1.5rem; border-radius:20px; border:1px solid var(--border-glass);">
+                                    <input id="inner-images" type="file" multiple accept="image/*" style="width:100%; padding:0.8rem; background:white; border-radius:10px; border:1px solid #ddd; cursor:pointer;" onchange="window.prevMulti(this)">
+                                    <div id="multi-preview" style="display:flex; gap:10px; margin-top:1rem; flex-wrap:wrap;"></div>
+                                </div>
+                            </div>
+                            
+                            <hr style="border:none; border-top:1px solid var(--border-glass); margin:1rem 0;">
+
+                            <div style="display:flex; justify-content:flex-end; gap:16px;">
+                                <button type="button" class="btn-ghost" style="padding:1rem 2rem; border-radius:14px; background:#F1F5F9; border:none; color:#333;" onclick="window.save('DRAFT')">💾 Lưu lại Bản Nháp</button>
+                                <button type="button" class="btn-primary" style="padding:1rem 2.5rem; border-radius:14px; font-size:1.05rem;" onclick="window.save('SUBMITTED')">🚀 Nộp Hồ Sơ Ngay</button>
+                            </div>
+                        </form>
+                    </div>`;
+            }
+        };
+
+        const SettingsView = {
+            render: () => {
+                const fs = FormService.getFields(true);
+                return `
+                    <div class="animate-fade-in" style="max-width:850px">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
+                            <h1 style="font-family:var(--font-heading)">⚙️ Quản lý thông tin biểu mẫu</h1>
+                            <button class="btn-primary" style="padding:0.8rem 1.5rem; border-radius:12px;" onclick="window.addField()">+ Thêm cột mới</button>
+                        </div>
+                        <div style="margin-top:2rem">
+                            ${fs.map(f => `
+                                <div class="glass" style="display:flex; justify-content:space-between; align-items:center; padding:1.2rem; border-radius:14px; margin-bottom:10px; ${!f.is_active?'opacity:0.4':''}">
+                                    <div><strong>${f.label}</strong> <small style="color:var(--accent-blue)">${f.type}</small></div>
+                                    <div><button onclick="window.tf('${f.id}',${!f.is_active})" class="btn-ghost">${f.is_active?'🗑️ Ẩn':'🔄 Hiện'}</button></div>
+                                </div>`).join('')}
+                        </div>
+                    </div>`;
+            }
+        };
+
+        // --- GLOBAL ACTIONS ---
+        const resizeImage = (file, callback) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; let height = img.height; const MAX = 800;
+                    if (width > height) { if (width > MAX) { height *= MAX / width; width = MAX; } } 
+                    else { if (height > MAX) { width *= MAX / height; height = MAX; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.save = (st) => {
+            const u = store.getState().user;
+            let currentThumb = window.lastB64;
+            if (!currentThumb) {
+                const imgEl = document.getElementById('p-img');
+                if (imgEl && imgEl.src && imgEl.src.startsWith('data:image')) {
+                    currentThumb = imgEl.src;
+                } else if (window.currentId) {
+                    const existingSite = SiteService.getSites().find(s=>s.id===window.currentId);
+                    if (existingSite) currentThumb = existingSite.thumb;
+                }
+            }
+
+            const ans = {};
+            FormService.getFields().forEach(f => {
+                const el = document.getElementById(f.id);
+                ans[f.id] = el ? el.value : '';
+            });
+
+            if (st === 'SUBMITTED') {
+                const missing = [];
+                const invalidNum = [];
+                FormService.getFields().forEach(f => {
+                    const val = ans[f.id] ? ans[f.id].toString().trim() : '';
+                    if (f.req && val === '') missing.push(f.label);
+                    if (val !== '' && f.num) {
+                        const sanitized = val.replace(/,/g, '');
+                        if (isNaN(Number(sanitized))) invalidNum.push(f.label);
+                    }
+                });
+                if (!currentThumb || currentThumb.includes('unsplash.com')) {
+                    missing.push('Ảnh mặt tiền thật (1 ảnh Thumbnail)');
+                }
+                
+                if (missing.length > 0) {
+                    alert('LỖI: Chưa thể nộp hồ sơ!\nBạn cần điền đầy đủ các thông tin bắt buộc sau:\n\n- ' + missing.join('\n- '));
+                    return; // Abort
+                }
+                if (invalidNum.length > 0) {
+                    alert('LỖI ĐỊNH DẠNG SỐ!\nCác cột sau BẮT BUỘC PHẢI LÀ SỐ (bạn không được gõ chữ "tr" hay "m2" vào ô này, chỉ gõ số, có thể dùng dấu phẩy cho hàng ngàn):\n\n- ' + invalidNum.join('\n- '));
+                    return; // Abort
+                }
+            }
+
+            const site = {
+                id: window.currentId || Date.now().toString(), status: st, owner: u.id, owner_name: u.name, region: u.region, date: new Date().toLocaleDateString('vi-VN'),
+                thumb: currentThumb || 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400',
+                inner_images: window.currentInnerImages || (window.currentId ? (SiteService.getSites().find(s=>s.id===window.currentId)?.inner_images||[]) : []),
+                name: ans['f1'] || 'Site mới',
+                brand: ans['f0'] || '---',
+                price: parseFloat(ans['f2_2']?.toString().replace(/,/g,'')) || 0,
+                answers: ans,
+                code: (st === 'SUBMITTED' || st === 'GATE1') ? (window.currentId && SiteService.getSites().find(s=>s.id===window.currentId)?.code) || 'MB-' + Math.floor(Math.random()*9000+1000) : (window.currentId ? SiteService.getSites().find(s=>s.id===window.currentId)?.code : '')
+            };
+            if (SiteService.save(site)) { alert('Đã lưu hồ sơ thành công!'); location.hash = '#sites'; }
+        };
+
+        window.prevMulti = async (input) => {
+            if(!input.files) return;
+            window.currentInnerImages = window.currentInnerImages || [];
+            const prv = document.getElementById('multi-preview');
+            // Reset ui in creation mode
+            if(!window.currentId && window.currentInnerImages.length === 0) prv.innerHTML = ''; 
+            
+            for(let f of input.files) {
+                resizeImage(f, (resizedB64) => {
+                    window.currentInnerImages.push(resizedB64);
+                    const img = document.createElement('img');
+                    img.src = resizedB64;
+                    img.style = "width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;";
+                    prv.appendChild(img);
+                });
+            }
+        };
+
+        window.prev = (i) => { 
+            if(i.files && i.files[0]) { 
+                resizeImage(i.files[0], (resizedB64) => {
+                    window.lastB64 = resizedB64; 
+                    document.getElementById('p-img').src = resizedB64; 
+                    document.getElementById('p-ui').style.display='block'; 
+                    document.getElementById('h-ui').style.display='none'; 
+                });
+            }
+        };
+        window.upStatus = (id, st) => { SiteService.updateStatus(id, st, `Đã chuyển trạng thái sang ${st}`); location.reload(); };
+        window.doComment = (id) => { const text=document.getElementById('msg').value; if(!text)return; SiteService.addComment(id, text, store.getState().user.name); location.reload(); };
+        window.unlock = (id) => { SiteService.updateStatus(id, 'DRAFT', 'Admin đã mở khóa bản ghi.'); alert('Đã mở khóa!'); location.reload(); };
+        window.reqEdit = (id) => { const r=prompt('Lý do sửa:'); if(r){ SiteService.addComment(id, `YÊU CẦU SỬA: ${r}`, store.getState().user.name); alert('Đã gửi yêu cầu!'); }};
+        window.delSite = (id) => { if(confirm('Bạn có chắc chắn muốn xóa hồ sơ mặt bằng này? Hành động này không thể hoàn tác.')) { let ss = JSON.parse(localStorage.getItem('site_poc_sites')) || []; ss = ss.filter(s => s.id !== id); localStorage.setItem('site_poc_sites', JSON.stringify(ss)); location.reload(); }};
+        window.addField = () => { const l = prompt('Tên cột:'); if(l){ const t = prompt('Loại (text, select, textarea):','text')||'text'; const fs=FormService.getFields(true); fs.push({id:'f'+Date.now(), label:l, type:t, is_active:true}); FormService.saveFields(fs); handleRoute(); }};
+        window.mpsaPrompt = (id) => { const v = prompt('Nhập MPSA mới (Số):'); if(v) { const n = prompt('Ghi chú:'); SiteService.updateMPSA(id, v, n); location.reload(); }};
+        window.ver2 = (id) => { if(confirm('Tạo Version 2 từ dữ liệu hiện tại?')){ SiteService.createVersion2(id); alert('Đã tạo V2!'); location.reload(); }};
+        window.tf = (id, a) => { FormService.updateField(id,{is_active:a}); handleRoute(); };
+
+        window.login = (role, loc, brand) => {
+            const user = { id: role.toLowerCase()+'-'+loc, name: role === 'ADMIN' ? 'Chị Nhi' : (role==='MB'?('Team MB '+loc) : (role==='BOD_L1'?'Sếp BOD Global':(role==='BOD_L2'?('Sếp BOD '+brand):'Team Project'))), role, region: loc, brand };
+            localStorage.setItem('site_poc_user', JSON.stringify(user)); location.href = '#dashboard'; location.reload();
+        };
+
+        function handleRoute() {
+            const u = JSON.parse(localStorage.getItem('site_poc_user'));
+            const hash = location.hash.split('?')[0] || (u ? '#dashboard' : '#login');
+            const hFull = location.hash;
+            const app = document.getElementById('app');
+
+            if(!u) { app.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#F1F5F9">
+                    <div class="glass" style="width:500px; padding:3rem; border-radius:32px; text-align:center">
+                        <h1 style="color:var(--accent-blue); font-family:var(--font-heading); font-size:2.2rem; margin-bottom:2rem">Site Management POC v2</h1>
+                        <button onclick="window.login('ADMIN', 'ALL')" class="btn-primary" style="width:100%; margin-bottom:12px">🚪 Đăng nhập ADMIN (Chị Nhi)</button>
+                        <div style="display:flex; gap:10px; margin-bottom:12px;">
+                            <button onclick="window.login('MB', 'NORTH')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🏙️ MB Bắc</button>
+                            <button onclick="window.login('MB', 'SOUTH')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🏙️ MB Nam</button>
+                        </div>
+                        <button onclick="window.login('BOD_L1', 'ALL')" class="btn-primary" style="width:100%; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; margin-bottom:12px; font-size:0.9rem">📈 BOD Level 1 (Global)</button>
+                        <div style="display:flex; gap:10px; margin-bottom:12px;">
+                            <button onclick="window.login('BOD_L2', 'ALL', 'Highlands')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">☕ BOD Highlands</button>
+                            <button onclick="window.login('BOD_L2', 'ALL', 'Phở 24')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🍜 BOD Phở 24</button>
+                        </div>
+                        <button onclick="window.login('PROJECT', 'ALL')" class="btn-primary" style="width:100%; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; font-size:0.9rem">👷 Team Project</button>
+                    </div>
+                </div>`; return; }
+
+            app.innerHTML = `
+                <div class="layout-container">
+                    <nav class="navbar glass">
+                        <div style="font-family:var(--font-heading); font-size:1.4rem; font-weight:700; color:var(--accent-blue)">🏢 Site Management Master POC</div>
+                        <div style="font-weight:700">${u.name} (${u.role})</div>
+                    </nav>
+                    <aside class="sidebar glass">
+                        <div class="sidebar-menu">
+                            <a href="#dashboard" class="menu-item ${hash==='#dashboard'?'active':''}">📊 Dashboard</a>
+                            <a href="#sites" class="menu-item ${hash==='#sites'?'active':''}">📍 Danh sách hồ sơ</a>
+                            <a href="#create" class="menu-item ${hash==='#create'?'active':''}">✍️ Soạn hồ sơ</a>
+                            ${u.role === 'ADMIN' ? `<a href="#settings" class="menu-item ${hash==='#settings'?'active':''}">⚙️ Quản lý Biểu mẫu</a>` : ''}
+                        </div>
+                        <button onclick="localStorage.removeItem('site_poc_user'); location.reload();" style="margin-top:auto; color:red; border:none; background:none; cursor:pointer; padding:20px; font-weight:700">Đăng xuất</button>
+                    </aside>
+                    <main class="main-content" id="m-view"></main>
+                </div>`;
+            
+            const m = document.getElementById('m-view');
+            if(hash === '#create') {
+                m.innerHTML = CreateSiteView.render();
+                const id = new URLSearchParams(hFull.split('?')[1]).get('id');
+                if(id) {
+                    const s = SiteService.getSites().find(x=>x.id===id);
+                    if(s) { 
+                        FormService.getFields().forEach(f => {
+                            if(document.getElementById(f.id)) document.getElementById(f.id).value = s.answers ? s.answers[f.id] : '';
+                        });
+                        if(s.thumb && s.thumb.startsWith('data:image')){ document.getElementById('p-img').src=s.thumb; document.getElementById('p-ui').style.display='block'; document.getElementById('h-ui').style.display='none'; }
+                        window.currentInnerImages = s.inner_images || [];
+                        const prv = document.getElementById('multi-preview');
+                        if (prv) {
+                            prv.innerHTML = window.currentInnerImages.map(img => `<img src="${img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;">`).join('');
+                        }
+                        window.currentId = id;
+                    }
+                } else { window.currentId = null; window.currentInnerImages = []; window.lastB64 = null; }
+            } else if(hash === '#detail') m.innerHTML = DetailView.render();
+            else if(hash === '#sites') m.innerHTML = SiteListView.render();
+            else if(hash === '#settings') m.innerHTML = SettingsView.render();
+            else m.innerHTML = DashboardView.render();
+        }
+        window.onhashchange = handleRoute;
+        window.onload = handleRoute;
+    </script>
+</body>
+</html>
