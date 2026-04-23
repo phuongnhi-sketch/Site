@@ -23,8 +23,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] Quy tắc bảo mật: Ẩn giá thuê/cọc đối với Project và sau khi Finish.
 
 - [x] Triển khai Phase 4 mở rộng: Map View nâng cao (2026-04-23).
-- [ ] Triển khai Hệ thống thông báo (Notifications) theo Brand + Role.
+- [x] Triển khai Hệ thống thông báo (Notifications) theo Brand + Role (2026-04-23).
+- [x] Triển khai Xuất báo cáo (Export Report) đa phiên bản (2026-04-23).
 
 ## 5. Việc tiếp theo (Next Priorities)
-1. Triển khai Hệ thống thông báo (Notifications) theo Brand + Role.
-2. Xuất báo cáo (Export Report) đa phiên bản (V1 & V2).
+1. Tối ưu hóa hiệu năng và nén ảnh nâng cao.
+2. Tích hợp AI hỗ trợ phân tích vị trí (Phase 5).
