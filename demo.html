@@ -390,7 +390,7 @@
 
                                 ${(u.role === 'ADMIN' || u.role === 'BOD_L1' || u.role === 'BOD_L2') ? `
                                     <div style="padding:1rem; background:#EFF6FF; border-radius:14px; margin-bottom:1.2rem">
-                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CHUYỂN GATE / TRẠNG THÁI</label>
+                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI</label>
                                         <div style="display:flex; flex-wrap:wrap; gap:6px">
                                             <button onclick="window.upStatus('${site.id}','GATE1')" class="btn-ghost" style="font-size:0.7rem; background:#F3E8FF; color:#7E22CE">👷 Survey</button>
                                             <button onclick="window.upStatus('${site.id}','GATE2')" class="btn-ghost" style="font-size:0.7rem; background:#DBEAFE; color:#1E40AF">📦 Sitepack</button>
@@ -403,13 +403,21 @@
                                     </div>
                                 ` : ''}
                                 <div id="comments-box" style="flex:1; overflow-y:auto; margin-bottom:1.2rem">
-                                    ${(site.comments || []).map(c => `
+                                    ${(site.comments || []).map(c => {
+                                        let cStyle = 'background:#eee; color:#666;';
+                                        if(c.stage === 'SUBMITTED') cStyle = 'background:#E0F2FE; color:#0369A1;';
+                                        if(c.stage === 'GATE1') cStyle = 'background:#F3E8FF; color:#7E22CE;';
+                                        if(c.stage === 'GATE2') cStyle = 'background:#DBEAFE; color:#1E40AF;';
+                                        if(c.stage === 'GATE3') cStyle = 'background:#FEF3C7; color:#B45309;';
+                                        if(c.stage === 'FINISH') cStyle = 'background:#DCFCE7; color:#15803D;';
+
+                                        return `
                                         <div class="comment-item" style="position:relative">
-                                            ${c.stage ? `<span style="position:absolute; top:8px; right:8px; font-size:0.6rem; font-weight:800; background:#eee; padding:2px 6px; border-radius:4px;">${STATUS_LABELS[c.stage]}</span>` : ''}
+                                            ${c.stage ? `<span style="position:absolute; top:8px; right:8px; font-size:0.6rem; font-weight:800; ${cStyle} padding:2px 6px; border-radius:4px;">${STATUS_LABELS[c.stage]}</span>` : ''}
                                             <strong>${c.author}</strong> <small style="display:block; color:#999; font-size:0.7rem">${new Date(c.date).toLocaleString()}</small>
                                             <p style="margin-top:5px; font-size:0.85rem">${c.text}</p>
-                                        </div>
-                                    `).join('')}
+                                        </div>`;
+                                    }).join('')}
                                     ${(!site.comments || site.comments.length === 0) ? '<p style="text-align:center; color:#ccc">Chưa có bình luận.</p>' : ''}
                                 </div>
                                 <div>
@@ -644,7 +652,12 @@
                 });
             }
         };
-        window.upStatus = (id, st) => { SiteService.updateStatus(id, st, `Đã chuyển trạng thái sang ${st}`); location.reload(); };
+        window.upStatus = (id, st) => { 
+            if(confirm(`Bạn có chắc chắn muốn chuyển trạng thái sang bước [${STATUS_LABELS[st]}]?`)) {
+                SiteService.updateStatus(id, st, `Đã chuyển trạng thái sang ${STATUS_LABELS[st]}`); 
+                location.reload(); 
+            }
+        };
         window.doComment = (id) => { const text=document.getElementById('msg').value; if(!text)return; SiteService.addComment(id, text, store.getState().user.name); location.reload(); };
         window.unlock = (id) => { SiteService.updateStatus(id, 'DRAFT', 'Admin đã mở khóa bản ghi.'); alert('Đã mở khóa!'); location.reload(); };
         window.reqEdit = (id) => { const r=prompt('Lý do sửa:'); if(r){ SiteService.addComment(id, `YÊU CẦU SỬA: ${r}`, store.getState().user.name); alert('Đã gửi yêu cầu!'); }};
