@@ -302,23 +302,26 @@
         const DetailView = {
             render: () => {
                 const u = store.getState().user;
-                const id = new URLSearchParams(location.hash.split('?')[1]).get('id');
+                const params = new URLSearchParams(location.hash.split('?')[1]);
+                const id = params.get('id');
                 const site = SiteService.getSites().find(s => s.id === id);
                 if(!site) return '<h1>Không tìm thấy hồ sơ</h1>';
 
-                // Versioning logic
-                const showV2 = site.v2_data && !window.viewV1;
+                // Versioning logic via URL
+                const isViewV1 = params.get('v') === '1';
+                const hasV2 = !!site.v2_data;
+                const showV2 = hasV2 && !isViewV1;
                 const data = showV2 ? site.v2_data : (site.answers || {});
 
                 return `
                     <div class="animate-fade-in">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem">
                             <div>
-                                <h1 style="margin-bottom:0.4rem">Chi tiết: ${site.name}</h1>
+                                <h1 style="margin-bottom:0.4rem">Chi tiết: ${data.f1 || site.name}</h1>
                                 <div style="display:flex; gap:10px; align-items:center">
                                     <span class="status-pill status-${site.status}" style="font-size:0.9rem; padding:0.4rem 1.2rem">${STATUS_LABELS[site.status]}</span>
-                                    ${site.v2_data ? `
-                                        <button class="btn-ghost" style="padding:4px 12px; font-size:0.75rem; border-color:var(--accent-blue); color:var(--accent-blue)" onclick="window.viewV1=${showV2?true:false}; location.reload();">
+                                    ${hasV2 ? `
+                                        <button class="btn-ghost" style="padding:4px 12px; font-size:0.75rem; border-color:var(--accent-blue); color:var(--accent-blue)" onclick="location.hash='#detail?id=${site.id}${showV2 ? '&v=1' : ''}'">
                                             ${showV2 ? '👁️ Xem Version 1 (Gốc)' : '👁️ Quay lại Version 2'}
                                         </button>
                                         ${(showV2 && u.role === 'ADMIN') ? `
@@ -598,9 +601,9 @@
                 status: (st === 'UPDATE_V2' && exSite) ? exSite.status : st,
                 thumb: currentThumb || (exSite ? exSite.thumb : 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'),
                 inner_images: window.currentInnerImages || (exSite ? exSite.inner_images : []),
-                name: ans['f1'] || 'Site mới',
-                brand: ans['f0'] || '---',
-                price: parseFloat(ans['f2_2']?.toString().replace(/,/g,'')) || 0,
+                name: (st === 'UPDATE_V2' && exSite) ? exSite.name : (ans['f1'] || 'Site mới'),
+                brand: (st === 'UPDATE_V2' && exSite) ? exSite.brand : (ans['f0'] || '---'),
+                price: (st === 'UPDATE_V2' && exSite) ? exSite.price : (parseFloat(ans['f2_2']?.toString().replace(/,/g,'')) || 0),
                 answers: (st === 'UPDATE_V2' && exSite) ? exSite.answers : ans,
                 v2_data: (st === 'UPDATE_V2') ? ans : (exSite ? exSite.v2_data : null),
                 code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (exSite?.code || 'MB-' + Math.floor(Math.random()*9000+1000)) : (exSite ? exSite.code : '')
@@ -661,13 +664,10 @@
             const u = JSON.parse(localStorage.getItem('site_poc_user'));
             const hash = location.hash.split('?')[0] || (u ? '#dashboard' : '#login');
             
-            // Reset states on route change unless staying in same view
+            // Reset states on route change
             if (!location.hash.startsWith('#create')) {
                 window.currentId = null;
                 window.editingV2 = false;
-            }
-            if (!location.hash.startsWith('#detail')) {
-                window.viewV1 = false;
             }
             const app = document.getElementById('app');
 
