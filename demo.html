@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site Management - MASTER POC v2.0 (Pipeline & Versioning)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --primary-color: #1E293B; --accent-blue: #2563EB; --accent-azure: #0EA5E9;
@@ -47,6 +49,8 @@
         /* Hide arrows for number inputs */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+        #map-container { height: 600px; width: 100%; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-soft); border: 4px solid white; }
+        .map-filter-panel { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -533,6 +537,92 @@
                     </div>`;
             }
         };
+ 
+        const MapView = {
+            render: () => {
+                const u = store.getState().user;
+                return `
+                    <div class="animate-fade-in">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem">
+                            <h1>🗺️ Bản đồ Pipeline</h1>
+                            <div class="map-filter-panel">
+                                <select id="f-status" class="btn-ghost" style="padding:0.8rem; background:white" onchange="window.refreshMap()">
+                                    <option value="ALL">Tất cả Trạng thái</option>
+                                    ${Object.entries(STATUS_LABELS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+                                </select>
+                                <select id="f-brand" class="btn-ghost" style="padding:0.8rem; background:white" onchange="window.refreshMap()">
+                                    <option value="ALL">Tất cả Brand</option>
+                                    <option value="TPC">TPC</option><option value="DQ">DQ</option><option value="SW">SW</option><option value="CHANG">CHANG</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="glass" style="padding:1rem; border-radius:30px">
+                            <div id="map-container"></div>
+                        </div>
+                    </div>`;
+            },
+            init: () => {
+                const u = store.getState().user;
+                const map = L.map('map-container').setView([10.762622, 106.660172], 13); // Default HCM
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+                window.mapInstance = map;
+                window.markerGroup = L.layerGroup().addTo(map);
+                window.refreshMap();
+            }
+        };
+
+        window.refreshMap = () => {
+            if(!window.mapInstance) return;
+            window.markerGroup.clearLayers();
+            const u = store.getState().user;
+            const stF = document.getElementById('f-status')?.value || 'ALL';
+            const brF = document.getElementById('f-brand')?.value || 'ALL';
+
+            const sites = SiteService.getSites().filter(s => {
+                if (stF !== 'ALL' && s.status !== stF) return false;
+                const sBrand = s.brand || s.answers?.f0;
+                if (brF !== 'ALL' && sBrand !== brF) return false;
+                
+                // RBAC
+                if (u.role === 'BOD_L2' && s.status !== 'FINISH') {
+                    if (['DQ', 'SW'].includes(u.brand)) { if(!['DQ', 'SW'].includes(sBrand)) return false; }
+                    else if (sBrand !== u.brand) return false;
+                }
+                if (u.role === 'PROJECT' && !['GATE1','GATE2','GATE3','FINISH'].includes(s.status)) return false;
+                if (u.role === 'MB' && s.region !== u.region) return false;
+                return true;
+            });
+
+            sites.forEach(s => {
+                const data = SiteService.getLatestData(s);
+                if (data.f3) {
+                    // Extract lat/lng from Google maps link or use random near HCM for demo
+                    // Simple regex for lat/lng: @(10\.\d+),(106\.\d+)
+                    let lat = 10.76 + (Math.random() - 0.5) * 0.1;
+                    let lng = 106.66 + (Math.random() - 0.5) * 0.1;
+                    
+                    const colors = { 'SUBMITTED':'#0EA5E9','GATE1':'#7E22CE','GATE2':'#2563EB','GATE3':'#B45309','FINISH':'#10B981','DRAFT':'#64748B'};
+                    const icon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background:${colors[s.status]||'#333'}; width:24px; height:24px; border-radius:50%; border:3px solid white; box-shadow:0 3px 10px rgba(0,0,0,0.2)"></div>`,
+                        iconSize: [24, 24], iconAnchor: [12, 12]
+                    });
+
+                    L.marker([lat, lng], {icon}).addTo(window.markerGroup)
+                        .bindPopup(`
+                            <div style="width:200px">
+                                <img src="${s.thumb}" style="width:100%; height:100px; object-fit:cover; border-radius:8px; margin-bottom:10px">
+                                <h4 style="margin:0">${data.f1 || s.name}</h4>
+                                <p style="font-size:0.8rem; margin:5px 0"><strong>Giá:</strong> ${data.f2_2 || '---'}</p>
+                                <span class="status-pill status-${s.status}" style="font-size:0.6rem">${STATUS_LABELS[s.status]}</span>
+                                <br><br>
+                                <button class="btn-primary" style="width:100%; padding:8px; font-size:0.75rem" onclick="location.hash='#detail?id=${s.id}'">Xem chi tiết</button>
+                            </div>
+                        `);
+                }
+            });
+        };
 
         // --- GLOBAL ACTIONS ---
         const resizeImage = (file, callback) => {
@@ -716,6 +806,7 @@
                         <div class="sidebar-menu">
                             <a href="#dashboard" class="menu-item ${hash==='#dashboard'?'active':''}">📊 Dashboard</a>
                             <a href="#sites" class="menu-item ${hash==='#sites'?'active':''}">📍 Danh sách hồ sơ</a>
+                            <a href="#map" class="menu-item ${hash==='#map'?'active':''}">🗺️ Bản đồ</a>
                             <a href="#create" class="menu-item ${hash==='#create'?'active':''}">✍️ Soạn hồ sơ</a>
                             ${u.role === 'ADMIN' ? `<a href="#settings" class="menu-item ${hash==='#settings'?'active':''}">⚙️ Quản lý Biểu mẫu</a>` : ''}
                         </div>
@@ -731,13 +822,11 @@
             if(hash === '#create') {
                 if (idParam) window.currentId = idParam;
                 m.innerHTML = CreateSiteView.render();
-            } else if(hash === '#detail') {
-                m.innerHTML = DetailView.render();
-            } else if(hash === '#sites') {
-                m.innerHTML = SiteListView.render();
-            } else if(hash === '#settings') {
-                m.innerHTML = SettingsView.render();
-            } else {
+            } else if(hash === '#detail') m.innerHTML = DetailView.render();
+            else if(hash === '#sites') m.innerHTML = SiteListView.render();
+            else if(hash === '#map') { m.innerHTML = MapView.render(); MapView.init(); }
+            else if(hash === '#settings') m.innerHTML = SettingsView.render();
+            else {
                 m.innerHTML = DashboardView.render();
             }
         }
