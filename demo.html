@@ -158,9 +158,12 @@
                 const ss = SiteService.getSites();
                 const idx = ss.findIndex(s => s.id === id);
                 if (idx > -1) {
-                    ss[idx].v2_data = { ...ss[idx].answers };
+                    ss[idx].v2_data = JSON.parse(JSON.stringify(ss[idx].answers)); // Deep clone
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
                 }
+            },
+            getLatestData: (site) => {
+                return site.v2_data || site.answers || {};
             }
         };
 
@@ -255,23 +258,29 @@
                                     <tr><th>Mặt tiền</th><th>Tên MB</th><th>Brand</th><th>Giá thuê (Có Thuế)</th><th>Người nộp</th><th>Ngày nộp</th><th><div style="font-size:0.65rem">DiỆN TÍCH /</div>MẶT TIỀN</th><th>Địa chỉ (Map)</th><th>Trạng thái</th><th>Miền</th><th>Thao tác</th></tr>
                                 </thead>
                                 <tbody>
-                                    ${sites.map(s => `
+                                    ${sites.map(s => {
+                                        const displayData = SiteService.getLatestData(s);
+                                        const sName = displayData.f1 || s.name;
+                                        const sPrice = displayData.f2_2 || s.price;
+                                        const sBrand = displayData.f0 || s.brand;
+
+                                        return `
                                         <tr>
                                             <td>
                                                 <img src="${s.thumb}" onerror="this.src='https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'" style="width:65px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
                                             </td>
-                                            <td><strong>${s.name}</strong></td>
-                                            <td><span style="font-weight:600; color:#555">${s.brand || s.answers?.f0 || '---'}</span></td>
+                                            <td><strong>${sName}</strong> ${s.v2_data ? '<span style="font-size:0.6rem; background:var(--accent-blue); color:white; padding:2px 4px; border-radius:4px; margin-left:4px">V2</span>' : ''}</td>
+                                            <td><span style="font-weight:600; color:#555">${sBrand || '---'}</span></td>
                                             <td style="font-weight:700; color:var(--accent-blue)">
-                                                ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN')) ? '*******' : (s.answers?.f2_2 ? (isNaN(parseFloat(s.answers.f2_2.replace(/,/g,''))) ? s.answers.f2_2 : parseFloat(s.answers.f2_2.replace(/,/g,'')).toLocaleString() + ' đ') : (s.price || '---'))}
+                                                ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN')) ? '*******' : (sPrice ? (isNaN(parseFloat(sPrice.toString().replace(/,/g,''))) ? sPrice : parseFloat(sPrice.toString().replace(/,/g,'')).toLocaleString() + ' đ') : '---')}
                                             </td>
                                             <td>${s.owner_name || s.owner}</td>
                                             <td>${s.date}</td>
                                             <td>
-                                                <div style="font-size:0.8rem"><strong>S:</strong> ${s.answers?.f5 || '---'} m2</div>
-                                                <div style="font-size:0.8rem"><strong>W:</strong> ${s.answers?.f4 || '---'} m</div>
+                                                <div style="font-size:0.8rem"><strong>S:</strong> ${displayData.f5 || '---'} m2</div>
+                                                <div style="font-size:0.8rem"><strong>W:</strong> ${displayData.f4 || '---'} m</div>
                                             </td>
-                                            <td>${s.answers?.f3 ? `<a href="${s.answers.f3}" target="_blank" style="color:var(--accent-blue); text-decoration:none;">📍 Xem Map</a>` : '---'}</td>
+                                            <td>${displayData.f3 ? `<a href="${displayData.f3}" target="_blank" style="color:var(--accent-blue); text-decoration:none;">📍 Xem Map</a>` : '---'}</td>
                                             <td><span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span></td>
                                             <td><span style="font-size:0.75rem; font-weight:800; color:#555">${s.region}</span></td>
                                             <td>
