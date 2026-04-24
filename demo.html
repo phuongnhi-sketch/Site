@@ -312,18 +312,30 @@
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
                             <h1>📍 Danh sách hồ sơ</h1>
                             <div style="display:flex; gap:10px; align-items:center">
-                                <div style="display:flex; align-items:center; gap:8px; margin-right:10px; font-size:0.8rem; font-weight:600; color:var(--text-muted)">
-                                    <input type="checkbox" id="include-qa" style="width:16px; height:16px; cursor:pointer"> <label for="include-qa" style="cursor:pointer">Kèm thảo luận</label>
+                                <div style="display:flex; flex-direction:column; gap:6px; margin-right:10px; padding:8px; background:#F8FAFC; border-radius:12px; border:1px solid #eee">
+                                    <div style="display:flex; align-items:center; gap:8px; font-size:0.75rem; font-weight:700; color:var(--text-muted)">
+                                        <input type="checkbox" id="include-qa" style="width:14px; height:14px; cursor:pointer"> <label for="include-qa" style="cursor:pointer">Kèm thảo luận</label>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:8px; font-size:0.75rem; font-weight:700; color:var(--text-muted)">
+                                        <label>Excel:</label>
+                                        <select id="excel-ver" style="border:1px solid #ddd; border-radius:6px; padding:2px 5px; font-size:0.7rem; background:white">
+                                            <option value="BOTH">Cả V1 & V2</option>
+                                            <option value="LATEST">Chỉ bản mới nhất</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <button class="btn-ghost" style="padding:0 20px" onclick="window.exportCSV()">📊 Xuất Excel</button>
-                                <button class="btn-ghost" style="padding:0 20px" onclick="window.printList()">🖨️ In DS (PDF)</button>
-                                ${(u.role === 'ADMIN' || u.role === 'MB') ? `<button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>` : ''}
+                                <button class="btn-ghost" style="padding:0 15px; font-size:0.85rem" onclick="window.exportCSV()">📊 Xuất Excel</button>
+                                <button class="btn-ghost" style="padding:0 15px; font-size:0.85rem; background:#EFF6FF; border-color:#DBEAFE" onclick="window.printSelected()">🖨️ In Mục Đã Chọn (PDF)</button>
+                                ${(u.role === 'ADMIN' || u.role === 'MB') ? `<button class="btn-primary" style="padding:0 25px; font-size:0.85rem" onclick="location.hash='#create'">+ Thêm MB</button>` : ''}
                             </div>
                         </div>
                         <div class="glass" style="border-radius:24px; overflow:hidden">
                             <table class="data-table">
                                 <thead>
-                                    <tr><th>Mặt tiền</th><th>Tên MB</th><th>Brand</th><th>Giá thuê (Có Thuế)</th><th>Người nộp</th><th>Ngày nộp</th><th><div style="font-size:0.65rem">DiỆN TÍCH /</div>MẶT TIỀN</th><th>Địa chỉ (Map)</th><th>Trạng thái</th><th>Miền</th><th>Thao tác</th></tr>
+                                    <tr>
+                                        <th style="width:40px"><input type="checkbox" onclick="window.toggleAll(this)" style="width:18px; height:18px; cursor:pointer"></th>
+                                        <th>Mặt tiền</th><th>Tên MB</th><th>Brand</th><th>Giá thuê (Có Thuế)</th><th>Người nộp</th><th>Ngày nộp</th><th><div style="font-size:0.65rem">DiỆN TÍCH /</div>MẶT TIỀN</th><th>Địa chỉ (Map)</th><th>Trạng thái</th><th>Miền</th><th>Thao tác</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     ${sites.map(s => {
@@ -334,6 +346,7 @@
 
                                         return `
                                         <tr>
+                                            <td><input type="checkbox" class="site-checkbox" data-id="${s.id}" style="width:18px; height:18px; cursor:pointer"></td>
                                             <td>
                                                 <img src="${s.thumb}" onerror="this.src='https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'" style="width:65px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
                                             </td>
@@ -839,6 +852,7 @@
             const sites = SiteService.getSites();
             const fields = FormService.getFields();
             const incQA = document.getElementById('include-qa')?.checked;
+            const verOpt = document.getElementById('excel-ver')?.value || 'BOTH';
             
             let csv = '\uFEFF'; // BOM for Excel UTF-8
             // Header
@@ -861,12 +875,12 @@
                     return row.join(',') + '\n';
                 };
 
-                // Row V1
-                csv += processRow(s.answers || {}, 'V1 (Original)');
-                
-                // Row V2 if exists
-                if (s.v2_data) {
-                    csv += processRow(s.v2_data, 'V2 (Final)');
+                if (verOpt === 'BOTH') {
+                    csv += processRow(s.answers || {}, 'V1 (Original)');
+                    if (s.v2_data) csv += processRow(s.v2_data, 'V2 (Final)');
+                } else {
+                    const data = s.v2_data || s.answers || {};
+                    csv += processRow(data, s.v2_data ? 'V2 (Final)' : 'V1 (Original)');
                 }
             });
 
@@ -877,61 +891,65 @@
             link.click();
         };
 
-        window.printList = () => {
-            const printContent = document.querySelector('.main-content').innerHTML;
-            const win = window.open('', '', 'height=700,width=900');
-            win.document.write('<html><head><title>Báo cáo Danh sách mặt bằng</title>');
-            win.document.write('<style>body{font-family:sans-serif;padding:20px} table{width:100%;border-collapse:collapse} th,td{border:1px solid #ddd;padding:8px;font-size:12px} .status-pill{padding:4px 8px;border-radius:10px;font-size:10px} img{width:100px} .btn-ghost, .btn-primary{display:none}</style>');
+        window.toggleAll = (master) => {
+            document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = master.checked);
+        };
+
+        window.printSelected = () => {
+            const selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+            if(selectedIds.length === 0) { alert('Vui lòng chọn ít nhất một mặt bằng để in!'); return; }
+            
+            const win = window.open('', '', 'height=800,width=1000');
+            win.document.write('<html><head><title>Báo cáo chọn lọc</title>');
+            win.document.write('<style>body{font-family:sans-serif;padding:30px} .page-break{page-break-after:always; border-bottom:2px dashed #eee; padding-bottom:40px; margin-bottom:40px} .header{display:flex;justify-content:space-between;margin-bottom:20px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .field label{font-weight:bold;font-size:11px;color:#666;display:block} .field p{margin:3px 0;font-size:13px} .thumb-img{width:350px;border-radius:10px;margin-bottom:15px} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px} .images-grid img{height:100px;width:100%;object-fit:cover;border-radius:8px} .version-tag{background:#2563EB;color:white;padding:4px 10px;border-radius:4px;font-size:11px} h2{color:#2563EB; font-size:1.2rem; margin-top:20px; border-left:4px solid #2563EB; padding-left:10px}</style>');
             win.document.write('</head><body>');
-            win.document.write('<h1>Danh sách mặt bằng</h1>');
-            win.document.write(printContent);
+            
+            selectedIds.forEach((id, index) => {
+                const site = SiteService.getSites().find(s => s.id === id);
+                if(!site) return;
+
+                win.document.write(`<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`);
+                win.document.write(`<div class="header"><h1>#${index+1}. ${site.name}</h1><div class="version-tag">Mã: ${site.code}</div></div>`);
+                win.document.write(`<img src="${site.thumb}" class="thumb-img">`);
+                
+                const renderSection = (data, title) => {
+                    win.document.write(`<h2>${title}</h2><div class="grid">`);
+                    FormService.getFields().forEach(f => {
+                        const v = data[f.id] || '';
+                        win.document.write(`<div class="field"><label>${f.label}</label><p>${v || '---'}</p></div>`);
+                    });
+                    win.document.write('</div>');
+                };
+
+                renderSection(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
+                if(site.v2_data) renderSection(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
+
+                if(site.inner_images && site.inner_images.length > 0) {
+                    win.document.write('<h3>Hình ảnh chi tiết</h3><div class="images-grid">');
+                    site.inner_images.forEach(img => win.document.write(`<img src="${img}">`));
+                    win.document.write('</div>');
+                }
+
+                if(site.comments && site.comments.length > 0) {
+                    win.document.write('<h3>Lịch sử thảo luận</h3>');
+                    site.comments.forEach(c => {
+                        win.document.write(`<div style="margin-bottom:8px;padding:8px;background:#f5f5f5;border-radius:6px;font-size:12px"><strong>${c.author}</strong>: ${c.text}</div>`);
+                    });
+                }
+                win.document.write('</div>');
+            });
+
             win.document.write('</body></html>');
             win.document.close();
             win.print();
         };
 
         window.printDetail = (id) => {
-            const site = SiteService.getSites().find(s => s.id === id);
-            if(!site) return;
-            const win = window.open('', '', 'height=800,width=1000');
-            win.document.write('<html><head><title>Chi tiết mặt bằng: ' + site.name + '</title>');
-            win.document.write('<style>body{font-family:sans-serif;padding:30px} .header{display:flex;justify-content:space-between;margin-bottom:30px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px} .field{margin-bottom:15px} .field label{font-weight:bold;font-size:12px;color:#666;display:block} .field p{margin:5px 0;font-size:14px} img{max-width:100%;border-radius:10px;margin-bottom:20px} .images-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px} .images-grid img{height:150px;object-fit:cover} .version-tag{background:#2563EB;color:white;padding:5px 10px;border-radius:5px;font-size:12px}</style>');
-            win.document.write('</head><body>');
-            
-            const renderData = (data, title) => {
-                win.document.write('<hr><h2 style="color:#2563EB">' + title + '</h2>');
-                win.document.write('<div class="grid">');
-                FormService.getFields().forEach(f => {
-                    const v = data[f.id] || '';
-                    win.document.write('<div class="field"><label>' + f.label + '</label><p>' + (v || '---') + '</p></div>');
-                });
-                win.document.write('</div>');
-            };
-
-            win.document.write('<div class="header"><h1>Báo cáo chi tiết: ' + site.name + '</h1><div class="version-tag">Mã: ' + site.code + '</div></div>');
-            win.document.write('<img src="' + site.thumb + '" style="width:400px">');
-            
-            renderData(site.answers || {}, 'PHIÊN BẢN GỐC (VERSION 1)');
-            if(site.v2_data) renderData(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (VERSION 2)');
-
-            if(site.inner_images && site.inner_images.length > 0) {
-                win.document.write('<h3>Hình ảnh chi tiết</h3><div class="images-grid">');
-                site.inner_images.forEach(img => win.document.write('<img src="' + img + '">'));
-                win.document.write('</div>');
-            }
-
-            if(site.comments && site.comments.length > 0) {
-                win.document.write('<h3>Lịch sử thảo luận (Q&A)</h3>');
-                site.comments.forEach(c => {
-                    win.document.write('<div style="margin-bottom:10px;padding:10px;background:#f9f9f9;border-radius:5px">');
-                    win.document.write('<strong>' + c.author + '</strong> <small>' + new Date(c.date).toLocaleString() + '</small>');
-                    win.document.write('<p>' + c.text + '</p></div>');
-                });
-            }
-
-            win.document.write('</body></html>');
-            win.document.close();
-            win.print();
+            // Re-use printSelected for a single ID to ensure UI consistency
+            document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = false);
+            const target = document.querySelector(`.site-checkbox[data-id="${id}"]`);
+            if(target) target.checked = true;
+            window.printSelected();
         };
 
         window.login = (role, loc, brand) => {
