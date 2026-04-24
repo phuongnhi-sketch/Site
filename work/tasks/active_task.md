@@ -11,13 +11,16 @@
 - **Version**: Đảm bảo toàn bộ UI hiển thị v2.0.
 - **RBAC Dashboard**: Thống kê số liệu dựa trên quyền hạn của từng User.
 - **Admin Region Fix**: Cho phép Admin chọn Miền khi nộp site.
-- **Nav Security**: Chỉ cho phép Admin/MB truy cập trang Soạn hồ sơ.
+- **Nav Security**:- [x] **Sửa lỗi Admin chọn Miền và Phân quyền điều hướng Soạn hồ sơ** (2026-04-24).
+- [x] **Hoàn thiện tính năng Export/Reporting nâng cao (CSV, PDF, Q&A History, V1/V2)** (2026-04-24).
+- **Advanced Export**: Hỗ trợ CSV/PDF, xuất chi tiết hình ảnh, tách biệt V1/V2 và tùy chọn kèm Q&A history.
 
 ## 3. Kế hoạch (Plan)
 - [x] Cập nhật `demo.html`: Sửa Dashboard greeting & version text.
 - [x] Cập nhật `demo.html`: Loại bỏ "(Gate X)" khỏi các thẻ thống kê Dashboard.
 - [x] Cập nhật `demo.html`: Phân quyền (filter) số liệu Dashboard theo Role/Brand.
 - [x] Cập nhật `demo.html`: Thêm lựa chọn Miền (North/South) cho Admin & Ẩn menu Soạn hồ sơ.
+- [x] Cập nhật `demo.html`: Triển khai tính năng Export/Reporting theo đúng Master Prompt.
 - [x] GitHub: Đã commit và push toàn bộ thay đổi mới nhất lên repository.
 - [ ] Rà soát lại `demo.html`: Đảm bảo không còn chữ "Gate" dư thừa trong các label hiển thị cho người dùng.
 - [ ] Cập nhật tài liệu: Đảm bảo `progress.md` ghi nhận sự thay đổi này.

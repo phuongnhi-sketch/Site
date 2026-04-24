@@ -311,8 +311,12 @@
                     <div class="animate-fade-in">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
                             <h1>📍 Danh sách hồ sơ</h1>
-                            <div style="display:flex; gap:10px">
-                                <button class="btn-ghost" style="padding:0 20px" onclick="window.exportCSV()">📊 Xuất Excel (CSV)</button>
+                            <div style="display:flex; gap:10px; align-items:center">
+                                <div style="display:flex; align-items:center; gap:8px; margin-right:10px; font-size:0.8rem; font-weight:600; color:var(--text-muted)">
+                                    <input type="checkbox" id="include-qa" style="width:16px; height:16px; cursor:pointer"> <label for="include-qa" style="cursor:pointer">Kèm thảo luận</label>
+                                </div>
+                                <button class="btn-ghost" style="padding:0 20px" onclick="window.exportCSV()">📊 Xuất Excel</button>
+                                <button class="btn-ghost" style="padding:0 20px" onclick="window.printList()">🖨️ In DS (PDF)</button>
                                 ${(u.role === 'ADMIN' || u.role === 'MB') ? `<button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>` : ''}
                             </div>
                         </div>
@@ -395,6 +399,9 @@
                                 </div>
                             </div>
                             <div style="text-align:right">
+                                <div style="display:flex; gap:10px; margin-bottom:10px; justify-content:flex-end">
+                                    <button class="btn-ghost" style="font-size:0.8rem; background:white" onclick="window.printDetail('${site.id}')">🖨️ Xuất PDF Chi tiết</button>
+                                </div>
                                 <div style="font-size:0.8rem; color:var(--text-muted); font-weight:700">VERSION ĐANG XEM</div>
                                 <div style="font-size:1.2rem; font-weight:800; color:var(--accent-blue)">${showV2 ? 'VERSION 2 (DEAL)' : 'VERSION 1 (ORIGINAL)'}</div>
                             </div>
@@ -831,29 +838,35 @@
         window.exportCSV = () => {
             const sites = SiteService.getSites();
             const fields = FormService.getFields();
+            const incQA = document.getElementById('include-qa')?.checked;
             
             let csv = '\uFEFF'; // BOM for Excel UTF-8
             // Header
-            csv += 'ID,Code,Brand,Tên MB,Trạng thái,Vùng miền,Người nộp,Ngày nộp,Version,';
-            csv += fields.map(f => f.label).join(',') + '\n';
+            csv += 'ID,Code,Brand,Tên MB,Trạng thái,Vùng miền,Người nộp,Ngày nộp,Version,MPSA Estimate,';
+            csv += fields.map(f => f.label.replace(/,/g, '')).join(',');
+            if (incQA) csv += ',Lịch sử thảo luận (Q&A)';
+            csv += '\n';
             
             sites.forEach(s => {
+                const processRow = (data, ver) => {
+                    let row = [s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status], s.region, s.owner_name, s.date, ver, s.current_mpsa || '0'];
+                    fields.forEach(f => {
+                        let val = data[f.id] || '';
+                        row.push('"' + val.toString().replace(/"/g, '""') + '"');
+                    });
+                    if (incQA) {
+                        const comments = (s.comments || []).map(c => `[${new Date(c.date).toLocaleDateString()} ${c.author}]: ${c.text}`).join(' | ');
+                        row.push('"' + comments.replace(/"/g, '""') + '"');
+                    }
+                    return row.join(',') + '\n';
+                };
+
                 // Row V1
-                const row1 = [s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status], s.region, s.owner_name, s.date, 'V1'];
-                fields.forEach(f => {
-                    let val = s.answers ? s.answers[f.id] : '';
-                    row1.push('"' + (val || '').toString().replace(/"/g, '""') + '"');
-                });
-                csv += row1.join(',') + '\n';
+                csv += processRow(s.answers || {}, 'V1 (Original)');
                 
                 // Row V2 if exists
                 if (s.v2_data) {
-                    const row2 = [s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status], s.region, s.owner_name, s.date, 'V2'];
-                    fields.forEach(f => {
-                        let val = s.v2_data[f.id];
-                        row2.push('"' + (val || '').toString().replace(/"/g, '""') + '"');
-                    });
-                    csv += row2.join(',') + '\n';
+                    csv += processRow(s.v2_data, 'V2 (Final)');
                 }
             });
 
@@ -862,6 +875,63 @@
             link.href = URL.createObjectURL(blob);
             link.download = `Site_Report_${new Date().toLocaleDateString()}.csv`;
             link.click();
+        };
+
+        window.printList = () => {
+            const printContent = document.querySelector('.main-content').innerHTML;
+            const win = window.open('', '', 'height=700,width=900');
+            win.document.write('<html><head><title>Báo cáo Danh sách mặt bằng</title>');
+            win.document.write('<style>body{font-family:sans-serif;padding:20px} table{width:100%;border-collapse:collapse} th,td{border:1px solid #ddd;padding:8px;font-size:12px} .status-pill{padding:4px 8px;border-radius:10px;font-size:10px} img{width:100px} .btn-ghost, .btn-primary{display:none}</style>');
+            win.document.write('</head><body>');
+            win.document.write('<h1>Danh sách mặt bằng</h1>');
+            win.document.write(printContent);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
+        };
+
+        window.printDetail = (id) => {
+            const site = SiteService.getSites().find(s => s.id === id);
+            if(!site) return;
+            const win = window.open('', '', 'height=800,width=1000');
+            win.document.write('<html><head><title>Chi tiết mặt bằng: ' + site.name + '</title>');
+            win.document.write('<style>body{font-family:sans-serif;padding:30px} .header{display:flex;justify-content:space-between;margin-bottom:30px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px} .field{margin-bottom:15px} .field label{font-weight:bold;font-size:12px;color:#666;display:block} .field p{margin:5px 0;font-size:14px} img{max-width:100%;border-radius:10px;margin-bottom:20px} .images-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px} .images-grid img{height:150px;object-fit:cover} .version-tag{background:#2563EB;color:white;padding:5px 10px;border-radius:5px;font-size:12px}</style>');
+            win.document.write('</head><body>');
+            
+            const renderData = (data, title) => {
+                win.document.write('<hr><h2 style="color:#2563EB">' + title + '</h2>');
+                win.document.write('<div class="grid">');
+                FormService.getFields().forEach(f => {
+                    const v = data[f.id] || '';
+                    win.document.write('<div class="field"><label>' + f.label + '</label><p>' + (v || '---') + '</p></div>');
+                });
+                win.document.write('</div>');
+            };
+
+            win.document.write('<div class="header"><h1>Báo cáo chi tiết: ' + site.name + '</h1><div class="version-tag">Mã: ' + site.code + '</div></div>');
+            win.document.write('<img src="' + site.thumb + '" style="width:400px">');
+            
+            renderData(site.answers || {}, 'PHIÊN BẢN GỐC (VERSION 1)');
+            if(site.v2_data) renderData(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (VERSION 2)');
+
+            if(site.inner_images && site.inner_images.length > 0) {
+                win.document.write('<h3>Hình ảnh chi tiết</h3><div class="images-grid">');
+                site.inner_images.forEach(img => win.document.write('<img src="' + img + '">'));
+                win.document.write('</div>');
+            }
+
+            if(site.comments && site.comments.length > 0) {
+                win.document.write('<h3>Lịch sử thảo luận (Q&A)</h3>');
+                site.comments.forEach(c => {
+                    win.document.write('<div style="margin-bottom:10px;padding:10px;background:#f9f9f9;border-radius:5px">');
+                    win.document.write('<strong>' + c.author + '</strong> <small>' + new Date(c.date).toLocaleString() + '</small>');
+                    win.document.write('<p>' + c.text + '</p></div>');
+                });
+            }
+
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
         };
 
         window.login = (role, loc, brand) => {
