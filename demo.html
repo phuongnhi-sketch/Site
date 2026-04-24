@@ -113,9 +113,11 @@
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
                     if (isNew) {
                         const sBrand = site.brand || (site.answers && site.answers.f0);
-                        // Notify ADMIN
+                        // Notify ADMIN & BOD L1
                         NotificationService.add('admin-all', `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
-                        // Notify BODs of the same brand
+                        NotificationService.add('bod_l1-all', `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
+                        
+                        // Notify BOD L2 of the same brand
                         if (sBrand === 'DQ' || sBrand === 'SW') {
                             NotificationService.add('bod_l2-all-dq', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
                             NotificationService.add('bod_l2-all-sw', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
@@ -146,9 +148,17 @@
                     }
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
                     const sBrand = ss[idx].brand || (ss[idx].answers && ss[idx].answers.f0);
-                    // Notify Owner
+                    // Notify Owner, Admin & BOD L1
                     NotificationService.add(ss[idx].owner.toLowerCase(), `🔄 Hồ sơ ${ss[idx].name} chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
-                    // Notify BODs
+                    NotificationService.add('admin-all', `🔄 Hồ sơ ${ss[idx].name} chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
+                    NotificationService.add('bod_l1-all', `🔄 Hồ sơ ${ss[idx].name} chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
+
+                    // Notify Project Team ONLY when moving to Survey (GATE1)
+                    if (status === 'GATE1') {
+                        NotificationService.add('project-all', `👷 Site mới cần khảo sát: ${ss[idx].name}`, ss[idx].id);
+                    }
+
+                    // Notify BOD L2
                     if (sBrand === 'DQ' || sBrand === 'SW') {
                         NotificationService.add('bod_l2-all-dq', `🔄 Hồ sơ ${ss[idx].name} (${sBrand}) chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
                         NotificationService.add('bod_l2-all-sw', `🔄 Hồ sơ ${ss[idx].name} (${sBrand}) chuyển sang: ${STATUS_LABELS[status]}`, ss[idx].id);
