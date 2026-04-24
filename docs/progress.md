@@ -1,18 +1,20 @@
-# PROGRESS.MD - TIẾN ĐỘ DỰ ÁN (v2.0 COMPLETE)
+# PROGRESS.MD - TIẾN ĐỘ DỰ ÁN (v2.1 UI REFINEMENT)
 
 Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án Site Management Web (POC).
 
 ## 1. Trạng thái hiện tại
 - **Phase**: 5 - Gate Pipeline & Versioning Implementation
-- **Status**: **Đã hoàn thành nâng cấp POC sang bản v2.0.**
-- **Cột mốc**: Hệ thống đã hỗ trợ đầy đủ quy trình Gate Pipeline và cơ chế Versioning.
+- **Status**: **Đã hoàn thành tối ưu giao diện Dashboard & Clean-up labels.**
+- **Cột mốc**: Hệ thống đã đồng bộ toàn bộ lên bản v2.0/v2.1, xóa bỏ thuật ngữ kỹ thuật (Gate) theo ý Nhi.
 
 ## 2. Các mốc quan trọng (Milestones)
 - [x] Thiết lập Framework Mode A (2026-04-22).
 - [x] Hoàn thiện Master POC demo.html v1.8 (2026-04-22).
 - [x] Nâng cấp Master Prompt lên v2.0 (Gate Pipeline & Versioning) (2026-04-23).
-- [x] **Cập nhật demo.html hỗ trợ Gate Pipeline (Survey / Sitepack / Deal / Complete)** (2026-04-23).
-- [x] **Implement tính năng Versioning và MPSA History** (2026-04-23).
+- [x] **Cập nhật demo.html hỗ trợ Pipeline (Survey / Sitepack / Deal / Complete)** (2026-04-23).
+- [x] **Triển khai v2.1: Tối ưu Dashboard & Xóa bỏ thuật ngữ "Gate"** (2026-04-24).
+- [x] **Cập nhật phân quyền (RBAC) cho số liệu thống kê trên Dashboard** (2026-04-24).
+- [x] **Sửa lỗi Admin chọn Miền và Phân quyền điều hướng Soạn hồ sơ** (2026-04-24).
 
 ## 3. Danh sách đã hoàn thành (v2.0)
 - [x] Hệ thống Status mới: Submitted / Survey / Sitepack / Deal / Complete.

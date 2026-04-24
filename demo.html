@@ -224,9 +224,21 @@
         // --- VIEWS ---
         const DashboardView = { render: () => {
             const u = store.getState().user;
-            const ss = SiteService.getSites();
+            // Áp dụng bộ lọc phân quyền cho Dashboard
+            const ss = SiteService.getSites().filter(s => {
+                if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
+                if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
+                if (u.role === 'BOD_L2') {
+                    if (s.status === 'FINISH') return true;
+                    const sBrand = s.brand || s.answers?.f0;
+                    if (['DQ', 'SW'].includes(u.brand)) return ['DQ', 'SW'].includes(sBrand);
+                    return sBrand === u.brand;
+                }
+                if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH'].includes(s.status);
+                return u.role === 'MB' ? s.region === u.region : false;
+            });
+            
             const mySites = ss.filter(s => s.owner === u.id);
-            const total = ss.length;
             const submitted = ss.filter(s => s.status === 'SUBMITTED').length;
             const gate1 = ss.filter(s => s.status === 'GATE1').length;
             const gate2 = ss.filter(s => s.status === 'GATE2').length;
@@ -247,8 +259,8 @@
                     </div>
                 </div>` : ''}
                 <div class="glass" style="padding:3.5rem; border-radius:30px; background:var(--grad-primary); color:white; margin-bottom:2.5rem; box-shadow:0 15px 40px rgba(37,99,235,0.15)">
-                    <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào Nhi!</h1>
-                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v1.8 đang hoạt động ổn định.</p>
+                    <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào Nhi! 👋</h1>
+                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v2.0 đang hoạt động ổn định và tối ưu.</p>
                 </div>
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem">
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-blue)">
@@ -257,19 +269,19 @@
                     </div>
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #7E22CE">
                         <h2 style="font-size:2.5rem; color:var(--primary-color)">${gate1}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Survey (Gate 1)</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Survey</p>
                     </div>
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-azure)">
                         <h2 style="font-size:2.5rem; color:var(--primary-color)">${gate2}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Sitepack (Gate 2)</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Sitepack</p>
                     </div>
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #B45309">
                         <h2 style="font-size:2.5rem; color:var(--primary-color)">${gate3}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Deal (Gate 3)</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Deal</p>
                     </div>
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #10B981">
                         <h2 style="font-size:2.5rem; color:var(--primary-color)">${finished}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Complete (Finish)</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.9rem; text-transform:uppercase; margin-top:0.5rem">Complete</p>
                     </div>
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid #64748B">
                         <h2 style="font-size:2.5rem; color:var(--primary-color)">${draft}</h2>
@@ -301,7 +313,7 @@
                             <h1>📍 Danh sách hồ sơ</h1>
                             <div style="display:flex; gap:10px">
                                 <button class="btn-ghost" style="padding:0 20px" onclick="window.exportCSV()">📊 Xuất Excel (CSV)</button>
-                                <button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>
+                                ${(u.role === 'ADMIN' || u.role === 'MB') ? `<button class="btn-primary" style="padding:0 30px" onclick="location.hash='#create'">+ Thêm mặt bằng</button>` : ''}
                             </div>
                         </div>
                         <div class="glass" style="border-radius:24px; overflow:hidden">
@@ -521,6 +533,16 @@
                         <h1 style="margin-bottom:2rem; font-family:var(--font-heading)">✍️ Soạn thảo hồ sơ mặt bằng</h1>
                         <form class="glass" onsubmit="event.preventDefault(); window.save(window.editingV2 ? 'UPDATE_V2' : 'SUBMITTED');" style="padding:4rem; border-radius:24px; display:flex; flex-direction:column; gap:2rem;">
                             ${window.editingV2 ? '<div style="background:#FEF3C7; color:#B45309; padding:1rem; border-radius:12px; font-weight:700; text-align:center">⚠️ ĐANG CHỈNH SỬA VERSION 2 (DEAL DATA)</div>' : ''}
+                            
+                            ${(store.getState().user.role === 'ADMIN' && !window.editingV2) ? `
+                                <div class="form-group">
+                                    <label style="display:block; font-weight:700; margin-bottom:0.8rem; color:var(--primary-color);">Vùng miền (Dành cho Admin) <span style="color:red">*</span></label>
+                                    <select id="admin-region" style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#EFF6FF; font-size:1rem; font-family:inherit; font-weight:700; border:2px solid var(--accent-blue);">
+                                        <option value="NORTH" ${ex?.region === 'NORTH' ? 'selected' : ''}>Miền Bắc</option>
+                                        <option value="SOUTH" ${ex?.region === 'SOUTH' ? 'selected' : '' || (!ex ? 'selected' : '')}>Miền Nam</option>
+                                    </select>
+                                </div>
+                            ` : ''}
                             
                             ${fs.map(f => {
                                 let v = '';
@@ -742,7 +764,7 @@
                 id: window.currentId || Date.now().toString(),
                 owner: exSite ? exSite.owner : u.id,
                 owner_name: exSite ? exSite.owner_name : u.name,
-                region: exSite ? exSite.region : u.region,
+                region: exSite ? exSite.region : (u.role === 'ADMIN' ? (document.getElementById('admin-region')?.value || 'ALL') : u.region),
                 date: exSite ? exSite.date : new Date().toLocaleDateString(),
                 status: (st === 'UPDATE_V2' && exSite) ? (exSite.status || 'GATE3') : st,
                 thumb: currentThumb || (exSite ? exSite.thumb : 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'),
@@ -901,7 +923,7 @@
                             <a href="#dashboard" class="menu-item ${hash==='#dashboard'?'active':''}">📊 Dashboard</a>
                             <a href="#sites" class="menu-item ${hash==='#sites'?'active':''}">📍 Danh sách hồ sơ</a>
                             <a href="#map" class="menu-item ${hash==='#map'?'active':''}">🗺️ Bản đồ</a>
-                            <a href="#create" class="menu-item ${hash==='#create'?'active':''}">✍️ Soạn hồ sơ</a>
+                            ${(u.role === 'ADMIN' || u.role === 'MB') ? `<a href="#create" class="menu-item ${hash==='#create'?'active':''}">✍️ Soạn hồ sơ</a>` : ''}
                             ${u.role === 'ADMIN' ? `<a href="#settings" class="menu-item ${hash==='#settings'?'active':''}">⚙️ Quản lý Biểu mẫu</a>` : ''}
                         </div>
                         <button onclick="localStorage.removeItem('site_poc_user'); location.reload();" style="margin-top:auto; color:red; border:none; background:none; cursor:pointer; padding:20px; font-weight:700">Đăng xuất</button>
