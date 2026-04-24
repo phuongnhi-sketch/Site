@@ -482,9 +482,9 @@
                                     ` : ''}
                                 </div>
 
-                                ${(u.role === 'ADMIN' || u.role === 'BOD_L1' || u.role === 'BOD_L2') ? `
+                                 ${(u.role === 'ADMIN') ? `
                                     <div style="padding:1rem; background:#EFF6FF; border-radius:14px; margin-bottom:1.2rem">
-                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI</label>
+                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI (ADMIN ONLY)</label>
                                         <div style="display:flex; flex-wrap:wrap; gap:6px">
                                             <button onclick="window.upStatus('${site.id}','GATE1')" class="btn-ghost" style="font-size:0.7rem; background:#F3E8FF; color:#7E22CE">👷 Survey</button>
                                             <button onclick="window.upStatus('${site.id}','GATE2')" class="btn-ghost" style="font-size:0.7rem; background:#DBEAFE; color:#1E40AF">📦 Sitepack</button>
@@ -851,6 +851,13 @@
         window.doComment = (id) => { const text=document.getElementById('msg').value; if(!text)return; SiteService.addComment(id, text, store.getState().user.name); location.reload(); };
         window.unlock = (id) => { SiteService.updateStatus(id, 'DRAFT', 'Admin đã mở khóa bản ghi.'); alert('Đã mở khóa!'); location.reload(); };
         window.reqEdit = (id) => { const r=prompt('Lý do sửa:'); if(r){ SiteService.addComment(id, `YÊU CẦU SỬA: ${r}`, store.getState().user.name); alert('Đã gửi yêu cầu!'); }};
+        window.markAllRead = () => {
+            const u = store.getState().user;
+            const ns = NotificationService.getNotifs();
+            ns.forEach(n => { if(n.uId === u.id) n.isRead = true; });
+            localStorage.setItem('site_poc_notifs', JSON.stringify(ns));
+            location.reload();
+        };
         window.delSite = (id) => { if(confirm('Bạn có chắc chắn muốn xóa hồ sơ mặt bằng này? Hành động này không thể hoàn tác.')) { let ss = JSON.parse(localStorage.getItem('site_poc_sites')) || []; ss = ss.filter(s => s.id !== id); localStorage.setItem('site_poc_sites', JSON.stringify(ss)); location.reload(); }};
         window.addField = () => { const l = prompt('Tên cột:'); if(l){ const t = prompt('Loại (text, select, textarea):','text')||'text'; const fs=FormService.getFields(true); fs.push({id:'f'+Date.now(), label:l, type:t, is_active:true}); FormService.saveFields(fs); handleRoute(); }};
         window.mpsaPrompt = (id) => { const v = prompt('Nhập MPSA mới (Số):'); if(v) { const n = prompt('Ghi chú:'); SiteService.updateMPSA(id, v, n); location.reload(); }};
@@ -1046,7 +1053,10 @@
                     <div class="animate-fade-in">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem">
                             <h1>🔔 Thông báo của bạn</h1>
-                            <button class="btn-ghost" onclick="localStorage.removeItem('site_poc_notifs'); location.reload();">Xóa tất cả</button>
+                            <div style="display:flex; gap:10px">
+                                <button class="btn-ghost" onclick="window.markAllRead()">✔️ Đã đọc tất cả</button>
+                                <button class="btn-ghost" style="color:red; border-color:#FEE2E2" onclick="localStorage.removeItem('site_poc_notifs'); location.reload();">🗑️ Xóa hết</button>
+                            </div>
                         </div>
                         <div class="glass" style="border-radius:24px; overflow:hidden">
                             ${ns.length === 0 ? '<div style="padding:4rem; text-align:center; color:#ccc">Không có thông báo mới</div>' : ns.map(n => `
