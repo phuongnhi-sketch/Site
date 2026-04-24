@@ -303,6 +303,7 @@
 
         const SiteListView = {
             render: () => {
+                const u = store.getState().user;
                 const filters = window.siteFilters || { search: '', region: 'ALL', brand: 'ALL', status: 'ALL' };
                 const sites = SiteService.getSites().filter(s => {
                     if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
