@@ -303,7 +303,7 @@
 
         const SiteListView = {
             render: () => {
-                const u = store.getState().user;
+                const filters = window.siteFilters || { search: '', region: 'ALL', brand: 'ALL', status: 'ALL' };
                 const sites = SiteService.getSites().filter(s => {
                     if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
                     if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
@@ -315,6 +315,13 @@
                     }
                     if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH'].includes(s.status);
                     return u.role === 'MB' ? s.region === u.region : false;
+                }).filter(s => {
+                    const sBrand = s.brand || s.answers?.f0 || '';
+                    const matchSearch = s.name.toLowerCase().includes(filters.search.toLowerCase()) || (s.code && s.code.toLowerCase().includes(filters.search.toLowerCase()));
+                    const matchRegion = filters.region === 'ALL' || s.region === filters.region;
+                    const matchBrand = filters.brand === 'ALL' || sBrand === filters.brand;
+                    const matchStatus = filters.status === 'ALL' || s.status === filters.status;
+                    return matchSearch && matchRegion && matchBrand && matchStatus;
                 }).reverse();
 
                 return `
@@ -338,6 +345,40 @@
                                 <button class="btn-ghost" style="padding:0 15px; font-size:0.85rem; background:#EFF6FF; border-color:#DBEAFE" onclick="window.printSelected()">🖨️ In Mục Đã Chọn (PDF)</button>
                                 ${(u.role === 'ADMIN' || u.role === 'MB') ? `<button class="btn-primary" style="padding:0 25px; font-size:0.85rem" onclick="location.hash='#create'">+ Thêm MB</button>` : ''}
                             </div>
+                        </div>
+
+                        <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; background:white; padding:1.5rem; border-radius:16px; border:1px solid #eee; align-items:flex-end">
+                            <div style="flex:1; min-width:200px">
+                                <label style="font-size:0.7rem; font-weight:800; color:var(--accent-blue); display:block; margin-bottom:8px">TÌM KIẾM</label>
+                                <input type="text" placeholder="Tìm tên hoặc mã hồ sơ..." value="${filters.search}" oninput="window.setFilter('search', this.value)" style="width:100%; padding:10px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:0.9rem">
+                            </div>
+                            <div style="width:160px">
+                                <label style="font-size:0.7rem; font-weight:800; color:var(--accent-blue); display:block; margin-bottom:8px">MIỀN</label>
+                                <select onchange="window.setFilter('region', this.value)" style="width:100%; padding:10px; border:1px solid #E2E8F0; border-radius:10px; font-size:0.9rem">
+                                    <option value="ALL" ${filters.region==='ALL'?'selected':''}>Tất cả Miền</option>
+                                    <option value="NORTH" ${filters.region==='NORTH'?'selected':''}>Miền Bắc</option>
+                                    <option value="SOUTH" ${filters.region==='SOUTH'?'selected':''}>Miền Nam</option>
+                                </select>
+                            </div>
+                            <div style="width:160px">
+                                <label style="font-size:0.7rem; font-weight:800; color:var(--accent-blue); display:block; margin-bottom:8px">BRAND</label>
+                                <select onchange="window.setFilter('brand', this.value)" style="width:100%; padding:10px; border:1px solid #E2E8F0; border-radius:10px; font-size:0.9rem">
+                                    <option value="ALL" ${filters.brand==='ALL'?'selected':''}>Tất cả Brand</option>
+                                    <option value="TPC" ${filters.brand==='TPC'?'selected':''}>TPC</option>
+                                    <option value="CHANG" ${filters.brand==='CHANG'?'selected':''}>CHANG</option>
+                                    <option value="DQ" ${filters.brand==='DQ'?'selected':''}>DQ</option>
+                                    <option value="SW" ${filters.brand==='SW'?'selected':''}>SW</option>
+                                    <option value="THE_PIZZA_COMPANY" ${filters.brand==='THE_PIZZA_COMPANY'?'selected':''}>The Pizza Company</option>
+                                </select>
+                            </div>
+                            <div style="width:160px">
+                                <label style="font-size:0.7rem; font-weight:800; color:var(--accent-blue); display:block; margin-bottom:8px">TRẠNG THÁI</label>
+                                <select onchange="window.setFilter('status', this.value)" style="width:100%; padding:10px; border:1px solid #E2E8F0; border-radius:10px; font-size:0.9rem">
+                                    <option value="ALL" ${filters.status==='ALL'?'selected':''}>Tất cả Trạng thái</option>
+                                    ${Object.keys(STATUS_LABELS).map(k => `<option value="${k}" ${filters.status===k?'selected':''}>${STATUS_LABELS[k]}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button onclick="window.siteFilters={search:'',region:'ALL',brand:'ALL',status:'ALL'}; handleRoute();" class="btn-ghost" style="padding:10px; font-size:0.8rem">Làm mới 🔄</button>
                         </div>
                         <div class="glass" style="border-radius:24px; overflow:hidden">
                             <table class="data-table">
@@ -848,6 +889,9 @@
                 location.reload(); 
             }
         };
+        window.siteFilters = { search: '', region: 'ALL', brand: 'ALL', status: 'ALL' };
+        window.setFilter = (key, val) => { window.siteFilters[key] = val; handleRoute(); };
+
         window.doComment = (id) => { const text=document.getElementById('msg').value; if(!text)return; SiteService.addComment(id, text, store.getState().user.name); location.reload(); };
         window.unlock = (id) => { SiteService.updateStatus(id, 'DRAFT', 'Admin đã mở khóa bản ghi.'); alert('Đã mở khóa!'); location.reload(); };
         window.reqEdit = (id) => { const r=prompt('Lý do sửa:'); if(r){ SiteService.addComment(id, `YÊU CẦU SỬA: ${r}`, store.getState().user.name); alert('Đã gửi yêu cầu!'); }};
