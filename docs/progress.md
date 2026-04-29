@@ -30,4 +30,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 
 ## 5. Việc tiếp theo (Next Priorities)
 1. Tối ưu hóa hiệu năng và nén ảnh nâng cao.
-2. Tích hợp AI hỗ trợ phân tích vị trí (Phase 5).
+2. Quản lý người dùng thực tế (User Management). Đã hoàn thành, hủy bỏ AI.
+
+## 6. Yêu cầu Phase Backend (Future Requirements)
+*Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*
+- **Auto Email Notifications**: Tích hợp gửi email thông báo tự động (Nodemailer / SendGrid / Amazon SES) tới địa chỉ email của User khi có Noti mới.
+- **Zalo ZNS / Zalo OA**: Bắn thông báo trực tiếp qua tin nhắn Zalo vào số điện thoại của User để đảm bảo tính tức thời.

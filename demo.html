@@ -226,6 +226,25 @@
             getUnreadCount: (uId) => NotificationService.getNotifs().filter(n => n.uId === uId && !n.isRead).length
         };
 
+        const UserService = {
+            getUsers: () => JSON.parse(localStorage.getItem('site_poc_users')) || [
+                { id: 'admin', username: 'admin', password: '123', name: 'Chị Nhi', role: 'ADMIN', region: 'ALL', brand: 'ALL', email: 'admin@system.com' },
+                { id: 'mb_north', username: 'mb_north', password: '123', name: 'Team MB North', role: 'MB', region: 'NORTH', brand: 'ALL', email: 'mb.north@system.com' }
+            ],
+            saveUser: (user) => {
+                const users = UserService.getUsers();
+                const idx = users.findIndex(u => u.id === user.id);
+                if(idx > -1) users[idx] = { ...users[idx], ...user };
+                else users.push({ ...user, id: user.id || Date.now().toString() });
+                localStorage.setItem('site_poc_users', JSON.stringify(users));
+            },
+            deleteUser: (id) => {
+                let users = UserService.getUsers();
+                users = users.filter(u => u.id !== id);
+                localStorage.setItem('site_poc_users', JSON.stringify(users));
+            }
+        };
+
         const store = {
             state: { user: JSON.parse(localStorage.getItem('site_poc_user')) },
             getState() { return this.state; }
@@ -679,6 +698,182 @@
                     </div>`;
             }
         };
+
+        const UserManagementView = {
+            render: () => {
+                const users = UserService.getUsers();
+                return `
+                    <div class="animate-fade-in" style="max-width:1000px; position:relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
+                            <h1 style="font-family:var(--font-heading)">👤 Quản lý User</h1>
+                            <button class="btn-primary" style="padding:0.8rem 1.5rem; border-radius:12px;" onclick="window.showUserModal()">+ Thêm User</button>
+                        </div>
+                        <div class="glass" style="border-radius:24px; overflow:hidden">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên User (Name)</th>
+                                        <th>Tài khoản (Username)</th>
+                                        <th>Mật khẩu</th>
+                                        <th>Mức độ (Role)</th>
+                                        <th>Email (Nhận Noti)</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${users.map(u => {
+                                        let roleDisplay = u.role;
+                                        if(u.role === 'MB') roleDisplay += ` (${u.region})`;
+                                        if(u.role === 'BOD_L2') roleDisplay += ` (${u.brand})`;
+                                        return `
+                                        <tr>
+                                            <td><strong>${u.name}</strong></td>
+                                            <td>${u.username}</td>
+                                            <td>*******</td>
+                                            <td><span class="status-pill status-SUBMITTED" style="background:#E0F2FE">${roleDisplay}</span></td>
+                                            <td>${u.email || '---'}</td>
+                                            <td>
+                                                <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem" onclick="window.showUserModal('${u.id}')">Sửa</button>
+                                                ${u.role !== 'ADMIN' ? `<button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:red; border-color:#FEE2E2" onclick="window.deleteUser('${u.id}')">Xóa</button>` : ''}
+                                            </td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- User Modal Overlay -->
+                        <div id="userModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+                            <div class="glass" style="background:white; width:500px; padding:2.5rem; border-radius:24px; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+                                <h2 id="uModalTitle" style="margin-bottom:1.5rem; color:var(--primary-color);">Thêm User mới</h2>
+                                <form onsubmit="event.preventDefault(); window.saveUserModal();" style="display:flex; flex-direction:column; gap:15px;">
+                                    <input type="hidden" id="u-id">
+                                    <div>
+                                        <label style="font-weight:700; font-size:0.85rem">Tên hiển thị <span style="color:red">*</span></label>
+                                        <input type="text" id="u-name" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700; font-size:0.85rem">Tài khoản (Username) <span style="color:red">*</span></label>
+                                        <input type="text" id="u-username" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700; font-size:0.85rem">Mật khẩu <span style="color:red">*</span></label>
+                                        <input type="password" id="u-password" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                        <small id="u-pass-hint" style="color:#666; font-size:0.75rem; display:none;">(Nhập mật khẩu mới nếu muốn đổi)</small>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700; font-size:0.85rem">Email nhận Noti</label>
+                                        <input type="email" id="u-email" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700; font-size:0.85rem">Mức độ sử dụng (Role) <span style="color:red">*</span></label>
+                                        <select id="u-role" onchange="window.onRoleChange()" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                            <option value="ADMIN">ADMIN</option>
+                                            <option value="MB">Team Mặt bằng (MB)</option>
+                                            <option value="PROJECT">Team Project</option>
+                                            <option value="BOD_L1">Sếp BOD Global (Level 1)</option>
+                                            <option value="BOD_L2">Sếp BOD Brand (Level 2)</option>
+                                        </select>
+                                    </div>
+                                    <div id="u-region-div" style="display:none;">
+                                        <label style="font-weight:700; font-size:0.85rem">Miền quản lý (Region)</label>
+                                        <select id="u-region" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                            <option value="NORTH">Miền Bắc</option>
+                                            <option value="SOUTH">Miền Nam</option>
+                                        </select>
+                                    </div>
+                                    <div id="u-brand-div" style="display:none;">
+                                        <label style="font-weight:700; font-size:0.85rem">Brand quản lý</label>
+                                        <select id="u-brand" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                            <option value="TPC">TPC</option>
+                                            <option value="CHANG">CHANG</option>
+                                            <option value="DQ">DQ</option>
+                                            <option value="SW">SW</option>
+                                        </select>
+                                    </div>
+                                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px">
+                                        <button type="button" class="btn-ghost" onclick="document.getElementById('userModal').style.display='none'">Hủy</button>
+                                        <button type="submit" class="btn-primary">Lưu User</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        window.showUserModal = (id) => {
+            const users = UserService.getUsers();
+            const modal = document.getElementById('userModal');
+            const roleEl = document.getElementById('u-role');
+            if (id) {
+                const u = users.find(x => x.id === id);
+                if(u) {
+                    document.getElementById('uModalTitle').innerText = 'Sửa thông tin User';
+                    document.getElementById('u-id').value = u.id;
+                    document.getElementById('u-name').value = u.name;
+                    document.getElementById('u-username').value = u.username;
+                    document.getElementById('u-password').value = '***';
+                    document.getElementById('u-password').required = false;
+                    document.getElementById('u-pass-hint').style.display = 'block';
+                    document.getElementById('u-email').value = u.email || '';
+                    roleEl.value = u.role;
+                    document.getElementById('u-region').value = u.region || 'NORTH';
+                    document.getElementById('u-brand').value = u.brand || 'TPC';
+                }
+            } else {
+                document.getElementById('uModalTitle').innerText = 'Thêm User mới';
+                document.getElementById('u-id').value = '';
+                document.getElementById('u-name').value = '';
+                document.getElementById('u-username').value = '';
+                document.getElementById('u-password').value = '';
+                document.getElementById('u-password').required = true;
+                document.getElementById('u-pass-hint').style.display = 'none';
+                document.getElementById('u-email').value = '';
+                roleEl.value = 'MB';
+                document.getElementById('u-region').value = 'NORTH';
+                document.getElementById('u-brand').value = 'TPC';
+            }
+            window.onRoleChange();
+            modal.style.display = 'flex';
+        };
+
+        window.onRoleChange = () => {
+            const role = document.getElementById('u-role').value;
+            document.getElementById('u-region-div').style.display = role === 'MB' ? 'block' : 'none';
+            document.getElementById('u-brand-div').style.display = role === 'BOD_L2' ? 'block' : 'none';
+        };
+
+        window.saveUserModal = () => {
+            const id = document.getElementById('u-id').value;
+            const pw = document.getElementById('u-password').value;
+            const u = {
+                id: id || Date.now().toString(),
+                name: document.getElementById('u-name').value,
+                username: document.getElementById('u-username').value,
+                role: document.getElementById('u-role').value,
+                email: document.getElementById('u-email').value,
+                region: document.getElementById('u-role').value === 'MB' ? document.getElementById('u-region').value : 'ALL',
+                brand: document.getElementById('u-role').value === 'BOD_L2' ? document.getElementById('u-brand').value : 'ALL'
+            };
+            if(pw !== '***' && pw.trim() !== '') u.password = pw;
+            if(pw === '***' && id) {
+                const existing = UserService.getUsers().find(x=>x.id === id);
+                if(existing) u.password = existing.password;
+            }
+
+            UserService.saveUser(u);
+            document.getElementById('userModal').style.display = 'none';
+            handleRoute();
+        };
+
+        window.deleteUser = (id) => {
+            if(confirm('Chắc chắn xóa user này?')) {
+                UserService.deleteUser(id);
+                handleRoute();
+            }
+        };
  
         const MapView = {
             render: () => {
@@ -1023,6 +1218,20 @@
             localStorage.setItem('site_poc_user', JSON.stringify(user)); location.href = '#dashboard'; location.reload();
         };
 
+        window.doLogin = () => {
+            const uInput = document.getElementById('login-user').value;
+            const pInput = document.getElementById('login-pass').value;
+            const users = UserService.getUsers();
+            const valid = users.find(u => u.username === uInput && u.password === pInput);
+            if (valid) {
+                const uObj = { id: valid.id, name: valid.name, role: valid.role, region: valid.region, brand: valid.brand, email: valid.email };
+                localStorage.setItem('site_poc_user', JSON.stringify(uObj));
+                location.href = '#dashboard'; location.reload();
+            } else {
+                alert('Sai tài khoản hoặc mật khẩu!');
+            }
+        };
+
         function handleRoute() {
             const u = JSON.parse(localStorage.getItem('site_poc_user'));
             const hash = location.hash.split('?')[0] || (u ? '#dashboard' : '#login');
@@ -1035,9 +1244,23 @@
             const app = document.getElementById('app');
 
             if(!u) { app.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#F1F5F9">
-                    <div class="glass" style="width:500px; padding:3rem; border-radius:32px; text-align:center">
-                        <h1 style="color:var(--accent-blue); font-family:var(--font-heading); font-size:2.2rem; margin-bottom:2rem">Site Management POC v2</h1>
+                <div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#F1F5F9; overflow:auto;">
+                    <div class="glass" style="width:500px; padding:3rem; border-radius:32px; text-align:center; margin: auto;">
+                        <h1 style="color:var(--accent-blue); font-family:var(--font-heading); font-size:2.2rem; margin-bottom:1.5rem">Site Management POC</h1>
+                        <form onsubmit="event.preventDefault(); window.doLogin();" style="display:flex; flex-direction:column; gap:15px; margin-bottom:2rem; text-align:left;">
+                            <div>
+                                <label style="font-size:0.8rem; font-weight:700">Tài khoản (VD: admin)</label>
+                                <input type="text" id="login-user" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-top:5px" required>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; font-weight:700">Mật khẩu (VD: 123)</label>
+                                <input type="password" id="login-pass" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-top:5px" required>
+                            </div>
+                            <button type="submit" class="btn-primary" style="margin-top:10px">🚀 Đăng nhập</button>
+                        </form>
+                        <div style="border-top:1px dashed #ddd; padding-top:1.5rem; margin-bottom:1rem">
+                            <p style="font-size:0.85rem; color:#666; font-weight:600; margin-bottom:10px">Hoặc đăng nhập nhanh (Quick Demo):</p>
+                        </div>
                         <button onclick="window.login('ADMIN', 'ALL')" class="btn-primary" style="width:100%; margin-bottom:12px">🚪 Đăng nhập ADMIN (Chị Nhi)</button>
                         <div style="display:flex; gap:10px; margin-bottom:12px;">
                             <button onclick="window.login('MB', 'NORTH')" class="btn-primary" style="flex:1; background:#fff; color:#333; box-shadow:none; border:1px solid #ddd; padding:0.8rem 0; font-size:0.8rem">🏙️ MB Bắc</button>
@@ -1075,6 +1298,7 @@
                             <a href="#map" class="menu-item ${hash==='#map'?'active':''}">🗺️ Bản đồ</a>
                             ${(u.role === 'ADMIN' || u.role === 'MB') ? `<a href="#create" class="menu-item ${hash==='#create'?'active':''}">✍️ Soạn hồ sơ</a>` : ''}
                             ${u.role === 'ADMIN' ? `<a href="#settings" class="menu-item ${hash==='#settings'?'active':''}">⚙️ Quản lý Biểu mẫu</a>` : ''}
+                            ${u.role === 'ADMIN' ? `<a href="#users" class="menu-item ${hash==='#users'?'active':''}">👤 Quản lý User</a>` : ''}
                         </div>
                         <button onclick="localStorage.removeItem('site_poc_user'); location.reload();" style="margin-top:auto; color:red; border:none; background:none; cursor:pointer; padding:20px; font-weight:700">Đăng xuất</button>
                     </aside>
@@ -1092,6 +1316,7 @@
             else if(hash === '#sites') m.innerHTML = SiteListView.render();
             else if(hash === '#map') { m.innerHTML = MapView.render(); MapView.init(); }
             else if(hash === '#settings') m.innerHTML = SettingsView.render();
+            else if(hash === '#users') m.innerHTML = UserManagementView.render();
             else if(hash === '#notifs') {
                 const ns = NotificationService.getNotifs().filter(n => n.uId === u.id);
                 m.innerHTML = `

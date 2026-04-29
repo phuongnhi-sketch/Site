@@ -420,7 +420,8 @@ Notification triggers:
 
 Notifications:
 - In-app notification bell
-- Optional email
+- **Auto Email (Future/Backend Phase)**: Gửi thông báo tự động vào địa chỉ email của User.
+- **Zalo ZNS / OA (Future/Backend Phase)**: Bắn thông báo qua tin nhắn Zalo vào số điện thoại của User.
 
 ---
 
