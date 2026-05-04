@@ -681,7 +681,6 @@
                     </div>`;
             }
         };
-
         const DetailView = {
             render: () => {
                 const u = store.getState().user;
@@ -689,6 +688,8 @@
                 const id = params.get('id');
                 const site = SiteService.getSites().find(s => s.id === id);
                 if (!site) return '<h1>Không tìm thấy hồ sơ</h1>';
+
+                const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
 
                 // Versioning logic via URL
                 const isViewV1 = params.get('v') === '1';
@@ -1442,7 +1443,7 @@
                 win.document.write(`<img src="${site.thumb}" class="thumb-img">`);
 
                 const renderSection = (data, title) => {
-                    const isMasked = (u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN') || (s.status === 'REJECTED' && u.role !== 'ADMIN'));
+                    const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
                     win.document.write(`<h2>${title}</h2><div class="grid">`);
                     FormService.getFields().forEach(f => {
                         let v = data[f.id] || '';
