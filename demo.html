@@ -50,7 +50,7 @@
 
         .layout-container {
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: 260px 1fr;
             grid-template-rows: 80px 1fr;
             height: 100vh;
             padding: 1.5rem;
@@ -305,9 +305,9 @@
                 } else {
                     if (!site.id) {
                         const now = new Date();
-                        const yymmdd = now.getFullYear().toString().slice(-2) + 
-                                      (now.getMonth() + 1).toString().padStart(2, '0') + 
-                                      now.getDate().toString().padStart(2, '0');
+                        const yymmdd = now.getFullYear().toString().slice(-2) +
+                            (now.getMonth() + 1).toString().padStart(2, '0') +
+                            now.getDate().toString().padStart(2, '0');
                         const todaySites = ss.filter(s => s.id && s.id.startsWith(yymmdd));
                         let num = todaySites.length + 1;
                         let newId = yymmdd + num.toString().padStart(2, '0');
@@ -621,22 +621,22 @@
                             </div>
                             <button onclick="window.siteFilters={search:'',region:'ALL',brand:'ALL',status:'ALL'}; handleRoute();" class="btn-ghost" style="padding:10px; font-size:0.8rem">Làm mới 🔄</button>
                         </div>
-                        <div class="glass" style="border-radius:24px; overflow:hidden">
+                        <div class="glass" style="border-radius:24px; overflow:auto">
                             <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th style="width:40px"><input type="checkbox" onclick="window.toggleAll(this)" style="width:18px; height:18px; cursor:pointer"></th>
-                                        <th>Ảnh</th>
-                                        <th>Tên MB</th>
-                                        <th>Brand</th>
-                                        <th>Giá thuê</th>
-                                        <th>Người nộp</th>
-                                        <th>Ngày nộp</th>
-                                        <th>Thông số</th>
-                                        <th>Map</th>
-                                        <th>Trạng thái</th>
-                                        <th>Miền</th>
-                                        <th>Thao tác</th>
+                                        <th style="width:80px">Ảnh</th>
+                                        <th style="min-width:180px">Tên MB</th>
+                                        <th style="min-width:100px">Brand</th>
+                                        <th style="min-width:140px">Giá thuê</th>
+                                        <th style="min-width:120px">Người nộp</th>
+                                        <th style="min-width:100px">Ngày nộp</th>
+                                        <th style="min-width:120px">Thông số</th>
+                                        <th style="min-width:100px">Map</th>
+                                        <th style="min-width:120px">Trạng thái</th>
+                                        <th style="min-width:80px">Miền</th>
+                                        <th style="min-width:120px">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -660,8 +660,7 @@
                                             <td>${s.owner_name || s.owner}</td>
                                             <td>${s.date}</td>
                                             <td>
-                                                <div style="font-size:0.8rem"><strong>S:</strong> ${displayData.f5 || '---'} m2</div>
-                                                <div style="font-size:0.8rem"><strong>W:</strong> ${displayData.f4 || '---'} m</div>
+                                                <div style="font-size:0.8rem; white-space:nowrap"><strong>S:</strong> ${displayData.f5 || '---'} m2 | <strong>W:</strong> ${displayData.f4 || '---'} m</div>
                                             </td>
                                             <td>${displayData.f3 ? `<a href="${displayData.f3}" target="_blank" style="color:var(--accent-blue); text-decoration:none;">📍 Xem Map</a>` : '---'}</td>
                                             <td><span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span></td>
