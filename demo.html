@@ -59,22 +59,23 @@
     <script>
         // --- DATA LAYER ---
         const INIT_FIELDS = [
-            { id: 'f0', label: 'Brand (Nhãn hàng)', type: 'select', options: ['TPC', 'DQ', 'SW', 'CHANG'], is_active: true, req: true },
-            { id: 'f1', label: 'Tên mặt bằng', type: 'text', is_active: true, req: true },
-            { id: 'f2_1', label: 'Giá chào thuê Chưa thuế (Điền X,000,000)', type: 'text', is_active: true, req: true, num: true },
-            { id: 'f2_2', label: 'Giá chào thuê Có thuế (Điền X,000,000)', type: 'text', is_active: true, req: true, num: true },
-            { id: 'f2_3', label: 'Bên nào khai và trả thuế', type: 'select', options: ['Chủ nhà', 'QSR'], is_active: true, req: true },
-            { id: 'f3', label: 'Link Google Map', type: 'text', is_active: true, req: true },
-            { id: 'f4', label: 'Kích thước mặt tiền m (Chỉ điền SỐ)', type: 'text', is_active: true, req: true, num: true },
-            { id: 'f5', label: 'Tổng diện tích m2 (Chỉ điền SỐ)', type: 'text', is_active: true, req: true, num: true },
-            { id: 'f6', label: 'Địa chỉ chi tiết', type: 'text', is_active: true, req: true },
-            { id: 'f7', label: 'Phương án thanh toán & cọc', type: 'textarea', is_active: true, req: true },
-            { id: 'f8', label: 'Biên độ tăng giảm giá', type: 'textarea', is_active: true, req: true },
-            { id: 'f9', label: 'Kết cấu, hiện trạng', type: 'textarea', is_active: true, req: true },
-            { id: 'f10_1', label: 'Thời gian miễn phí xây dựng', type: 'textarea', is_active: true, req: true },
-            { id: 'f10_2', label: 'Thời gian nhận mặt bằng', type: 'textarea', is_active: true, req: true },
-            { id: 'f11', label: 'Điều kiện kỹ thuật (Điện, PCCC...)', type: 'textarea', is_active: true, req: true },
-            { id: 'f12', label: 'Lưu ý khác', type: 'textarea', is_active: true, req: false }
+            { id: 'f0', label: 'Brand', type: 'checkboxes', options: ['TPC', 'DQ', 'SW', 'CHANG'], is_active: true, req: true },
+            { id: 'f1', label: 'Mã mặt bằng', type: 'text', is_active: true, req: true },
+            { id: 'f6', label: 'Địa chỉ (Số nhà)', type: 'text', is_active: true, req: true },
+            { id: 'f3', label: 'Google map', type: 'text', is_active: true, req: true },
+            { id: 'f13', label: 'Bên cho thuê', type: 'select', options: ['Cá nhân', 'Pháp nhân'], is_active: true, req: true },
+            { id: 'f2_3', label: 'Bên khai và trả thuế', type: 'select', options: ['Chủ nhà', 'QSR'], is_active: true, req: true },
+            { id: 'f14', label: 'Thời hạn thuê (năm)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f2_1', label: 'Giá thuê chưa thuế (VD: 1,000,000)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f2_2', label: 'Giá thuê có thuế (VD: 1,000,000)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f8', label: 'Biên độ tăng giá', type: 'textarea', is_active: true, req: true },
+            { id: 'f7', label: 'Cọc - Thanh toán', type: 'textarea', is_active: true, req: true },
+            { id: 'f4', label: 'Mặt tiền (m)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f5', label: 'Tổng diện tích cho thuê (m2)', type: 'text', is_active: true, req: true, num: true },
+            { id: 'f9', label: 'Mô tả khác (VD: Kết cấu, hiện trạng,..)', type: 'textarea', is_active: true, req: true },
+            { id: 'f11', label: 'Điều kiện kỹ thuật', type: 'textarea', is_active: true, req: true },
+            { id: 'f10_2', label: 'Ngày nhận nhà', type: 'text', is_active: true, req: true },
+            { id: 'f10_1', label: 'Thời gian miễn phí xây dựng', type: 'text', is_active: true, req: true }
         ];
 
         const STATUS_LABELS = {
@@ -88,10 +89,10 @@
 
         const FormService = {
             getFields: (all = false) => {
-                const fs = JSON.parse(localStorage.getItem('site_poc_fields_v7')) || INIT_FIELDS;
+                const fs = JSON.parse(localStorage.getItem('site_poc_fields_v9')) || INIT_FIELDS;
                 return all ? fs : fs.filter(f => f.is_active);
             },
-            saveFields: (fs) => localStorage.setItem('site_poc_fields_v7', JSON.stringify(fs)),
+            saveFields: (fs) => localStorage.setItem('site_poc_fields_v9', JSON.stringify(fs)),
             updateField: (id, updates) => {
                 const fs = FormService.getFields(true);
                 const idx = fs.findIndex(f => f.id === id);
@@ -118,12 +119,19 @@
                         NotificationService.add('bod_l1-all', `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
                         
                         // Notify BOD L2 of the same brand
-                        if (sBrand === 'DQ' || sBrand === 'SW') {
-                            NotificationService.add('bod_l2-all-dq', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
-                            NotificationService.add('bod_l2-all-sw', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
-                        } else {
-                            NotificationService.add(`bod_l2-all-${sBrand.toLowerCase()}`, `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
-                        }
+                        const brandList = Array.from(new Set((sBrand || '').split(',').map(b=>b.trim()).filter(b=>b)));
+                        let addedDQ_SW = false;
+                        brandList.forEach(b => {
+                            if (b === 'DQ' || b === 'SW') {
+                                if (!addedDQ_SW) {
+                                    NotificationService.add('bod_l2-all-dq', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
+                                    NotificationService.add('bod_l2-all-sw', `🚀 Site mới: ${site.name} (${sBrand}) vừa được nộp!`, site.id);
+                                    addedDQ_SW = true;
+                                }
+                            } else {
+                                NotificationService.add(`bod_l2-all-${b.toLowerCase()}`, `🚀 Site mới: ${site.name} vừa được nộp!`, site.id);
+                            }
+                        });
                     }
                     return true;
                 } catch(e) {
@@ -259,9 +267,9 @@
                 if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
                 if (u.role === 'BOD_L2') {
                     if (s.status === 'FINISH') return true;
-                    const sBrand = s.brand || s.answers?.f0;
-                    if (['DQ', 'SW'].includes(u.brand)) return ['DQ', 'SW'].includes(sBrand);
-                    return sBrand === u.brand;
+                    const sBrand = s.brand || s.answers?.f0 || '';
+                    if (['DQ', 'SW'].includes(u.brand)) return sBrand.includes('DQ') || sBrand.includes('SW');
+                    return sBrand.includes(u.brand);
                 }
                 if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH'].includes(s.status);
                 return u.role === 'MB' ? s.region === u.region : false;
@@ -329,9 +337,9 @@
                     if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
                     if (u.role === 'BOD_L2') {
                         if (s.status === 'FINISH') return true;
-                        const sBrand = s.brand || s.answers?.f0;
-                        if (['DQ', 'SW'].includes(u.brand)) return ['DQ', 'SW'].includes(sBrand);
-                        return sBrand === u.brand;
+                        const sBrand = s.brand || s.answers?.f0 || '';
+                        if (['DQ', 'SW'].includes(u.brand)) return sBrand.includes('DQ') || sBrand.includes('SW');
+                        return sBrand.includes(u.brand);
                     }
                     if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH'].includes(s.status);
                     return u.role === 'MB' ? s.region === u.region : false;
@@ -339,7 +347,7 @@
                     const sBrand = s.brand || s.answers?.f0 || '';
                     const matchSearch = s.name.toLowerCase().includes(filters.search.toLowerCase()) || (s.code && s.code.toLowerCase().includes(filters.search.toLowerCase()));
                     const matchRegion = filters.region === 'ALL' || s.region === filters.region;
-                    const matchBrand = filters.brand === 'ALL' || sBrand === filters.brand;
+                    const matchBrand = filters.brand === 'ALL' || sBrand.includes(filters.brand);
                     const matchStatus = filters.status === 'ALL' || s.status === filters.status;
                     return matchSearch && matchRegion && matchBrand && matchStatus;
                 }).reverse();
@@ -543,14 +551,14 @@
                                     ` : ''}
                                 </div>
 
-                                 ${(u.role === 'ADMIN') ? `
+                                 ${(u.role === 'ADMIN' || u.role === 'MB') ? `
                                     <div style="padding:1rem; background:#EFF6FF; border-radius:14px; margin-bottom:1.2rem">
-                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI (ADMIN ONLY)</label>
+                                        <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI</label>
                                         <div style="display:flex; flex-wrap:wrap; gap:6px">
-                                            <button onclick="window.upStatus('${site.id}','GATE1')" class="btn-ghost" style="font-size:0.7rem; background:#F3E8FF; color:#7E22CE">👷 Survey</button>
-                                            <button onclick="window.upStatus('${site.id}','GATE2')" class="btn-ghost" style="font-size:0.7rem; background:#DBEAFE; color:#1E40AF">📦 Sitepack</button>
-                                            <button onclick="window.upStatus('${site.id}','GATE3')" class="btn-ghost" style="font-size:0.7rem; background:#FEF3C7; color:#B45309">🤝 Deal</button>
-                                            <button onclick="window.upStatus('${site.id}','FINISH')" class="btn-ghost" style="font-size:0.7rem; background:#DCFCE7; color:#15803D">🏆 Complete</button>
+                                            <button onclick="window.upStatus('${site.id}','GATE1')" class="btn-ghost" style="font-size:0.7rem; background:#F3E8FF; color:#7E22CE; transition:0.3s; opacity:${site.status==='GATE1'?'1':'0.35'}">👷 Survey</button>
+                                            <button onclick="window.upStatus('${site.id}','GATE2')" class="btn-ghost" style="font-size:0.7rem; background:#DBEAFE; color:#1E40AF; transition:0.3s; opacity:${site.status==='GATE2'?'1':'0.35'}">📦 Sitepack</button>
+                                            <button onclick="window.upStatus('${site.id}','GATE3')" class="btn-ghost" style="font-size:0.7rem; background:#FEF3C7; color:#B45309; transition:0.3s; opacity:${site.status==='GATE3'?'1':'0.35'}">🤝 Deal</button>
+                                            <button onclick="window.upStatus('${site.id}','FINISH')" class="btn-ghost" style="font-size:0.7rem; background:#DCFCE7; color:#15803D; transition:0.3s; opacity:${site.status==='FINISH'?'1':'0.35'}">🏆 Complete</button>
                                             ${u.role === 'ADMIN' && site.status === 'GATE3' ? `
                                                 <button onclick="window.ver2('${site.id}')" class="btn-ghost" style="font-size:0.7rem; background:#fff; border-color:var(--accent-azure); color:var(--accent-azure)">⭐ Create V2</button>
                                             ` : ''}
@@ -577,7 +585,7 @@
                                 </div>
                                 <div>
                                     <textarea id="msg" style="width:100%; border-radius:12px; padding:0.8rem; border:1px solid #ddd; margin-bottom:0.8rem" placeholder="Viết nhận xét..."></textarea>
-                                    <button class="btn-primary" style="width:100%" onclick="window.doComment('${site.id}')">Gửa nhận xét</button>
+                                    <button class="btn-primary" style="width:100%" onclick="window.doComment('${site.id}')">Gửi nhận xét</button>
                                 </div>
                             </div>
                         </div>
@@ -647,7 +655,9 @@
                                     `<textarea id="${f.id}" rows="3" placeholder="Nhập ${f.label}..." style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem; font-family:inherit; resize:vertical;">${v}</textarea>` 
                                     : (f.type === 'select' ? 
                                     `<select id="${f.id}" style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem; font-family:inherit;"><option value="">-- Chọn --</option>${(f.options||[]).map(o=>`<option value="${o}" ${v===o?'selected':''}>${o}</option>`).join('')}</select>`
-                                    : `<input id="${f.id}" type="${f.type}" value="${v}" placeholder="Nhập ${f.label}..." style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem;">` )}
+                                    : (f.type === 'checkboxes' ?
+                                    `<div id="${f.id}" class="checkbox-group" style="display:flex; gap:15px; flex-wrap:wrap; padding:0.5rem 0;">${(f.options||[]).map(o=>`<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:1rem;"><input type="checkbox" name="${f.id}" value="${o}" ${(v||'').includes(o)?'checked':''} style="width:18px;height:18px; cursor:pointer;">${o}</label>`).join('')}</div>`
+                                    : `<input id="${f.id}" type="${f.type}" value="${v}" placeholder="Nhập ${f.label}..." style="width:100%; padding:1.2rem; border-radius:14px; border:1px solid var(--border-glass); background:#F8FAFC; font-size:1rem;">` ))}
                                 </div>`;
                             }).join('')}
 
@@ -995,8 +1005,13 @@
 
             const ans = {};
             FormService.getFields().forEach(f => {
-                const el = document.getElementById(f.id);
-                ans[f.id] = el ? el.value : '';
+                if (f.type === 'checkboxes') {
+                    const checkboxes = document.querySelectorAll(`input[name="${f.id}"]:checked`);
+                    ans[f.id] = Array.from(checkboxes).map(cb => cb.value).join(', ');
+                } else {
+                    const el = document.getElementById(f.id);
+                    ans[f.id] = el ? el.value : '';
+                }
             });
 
             if (st === 'SUBMITTED') {
