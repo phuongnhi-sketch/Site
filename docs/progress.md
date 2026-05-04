@@ -12,9 +12,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] Hoàn thiện Master POC demo.html v1.8 (2026-04-22).
 - [x] Nâng cấp Master Prompt lên v2.0 (Gate Pipeline & Versioning) (2026-04-23).
 - [x] **Cập nhật demo.html hỗ trợ Pipeline (Survey / Sitepack / Deal / Complete)** (2026-04-23).
-- [x] **Triển khai v2.1: Tối ưu Dashboard & Xóa bỏ thuật ngữ "Gate"** (2026-04-24).
-- [x] **Cập nhật phân quyền (RBAC) cho số liệu thống kê trên Dashboard** (2026-04-24).
-- [x] **Sửa lỗi Admin chọn Miền và Phân quyền điều hướng Soạn hồ sơ** (2026-04-24).
+- [x] **Triển khai v2.5: Trạng thái Rejected, Nâng cấp Xuất báo cáo & Tối ưu UI** (2026-05-04).
+- [x] **Định dạng tiền tệ và căn lề PDF chuyên nghiệp** (2026-05-04).
+- [x] **Đồng bộ nhãn phân quyền (BOD, Project) & Lời chào cá nhân hóa** (2026-05-04).
 
 ## 3. Danh sách đã hoàn thành (v2.0)
 - [x] Hệ thống Status mới: Submitted / Survey / Sitepack / Deal / Complete.
