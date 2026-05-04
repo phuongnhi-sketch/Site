@@ -761,9 +761,10 @@
                                 <div style="padding:1rem; background:white; border:1px solid #eee; border-radius:14px; margin-bottom:1.2rem">
                                     <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:0.5rem">MPSA ESTIMATE</label>
                                     <div style="font-size:1.2rem; font-weight:800; color:var(--accent-blue); margin-bottom:0.5rem">
-                                        ${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---'}
+                                        ${isMasked ? '*******' : (site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---')}
                                     </div>
                                     ${(() => {
+                        if (isMasked) return '';
                         const pTax = parseFloat((data['f2_2'] || '').toString().replace(/,/g, '')) || 0;
                         const mpsa = parseFloat(site.current_mpsa) || 0;
                         if (mpsa > 0 && pTax > 0) {
@@ -775,7 +776,7 @@
                                     ${u.role === 'ADMIN' ? `
                                         <button class="btn-ghost" style="width:100%; font-size:0.75rem; padding:6px" onclick="window.mpsaPrompt('${site.id}')">Update MPSA</button>
                                     ` : ''}
-                                    ${site.mpsa_history && site.mpsa_history.length > 0 ? `
+                                    ${!isMasked && site.mpsa_history && site.mpsa_history.length > 0 ? `
                                         <div style="margin-top:0.8rem; font-size:0.7rem; color:var(--text-muted); max-height:80px; overflow-y:auto; padding-top:0.5rem; border-top:1px solid #f1f1f1">
                                             <strong>Lịch sử cập nhật:</strong><br>
                                             ${site.mpsa_history.map(h => `- ${new Date(h.date).toLocaleDateString()}: ${parseFloat(h.value).toLocaleString('en-US')} đ`).join('<br>')}
@@ -1357,6 +1358,7 @@
         window.tf = (id, a) => { FormService.updateField(id, { is_active: a }); handleRoute(); };
 
         window.exportCSV = () => {
+            const u = store.getState().user;
             const selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
             let sites = SiteService.getSites();
             if (selectedIds.length > 0) {
@@ -1375,13 +1377,18 @@
 
             sites.forEach(s => {
                 const processRow = (data, ver) => {
+                    const isMasked = (u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN') || (s.status === 'REJECTED' && u.role !== 'ADMIN'));
                     let row = [
                         s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status],
-                        s.region, s.owner_name, s.date, ver, s.current_mpsa || '0'
+                        s.region, s.owner_name, s.date, ver, 
+                        isMasked ? '*******' : (s.current_mpsa || '0')
                     ].map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"');
 
                     fields.forEach(f => {
                         let val = data[f.id] || '';
+                        if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) {
+                            val = '*******';
+                        }
                         row.push('"' + val.toString().replace(/"/g, '""') + '"');
                     });
                     if (incQA) {
@@ -1412,6 +1419,7 @@
         };
 
         window.printSelected = () => {
+            const u = store.getState().user;
             let selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
             if (selectedIds.length === 0) {
                 selectedIds = SiteService.getSites().map(s => s.id);
@@ -1434,11 +1442,15 @@
                 win.document.write(`<img src="${site.thumb}" class="thumb-img">`);
 
                 const renderSection = (data, title) => {
+                    const isMasked = (u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN') || (s.status === 'REJECTED' && u.role !== 'ADMIN'));
                     win.document.write(`<h2>${title}</h2><div class="grid">`);
                     FormService.getFields().forEach(f => {
-                        const v = data[f.id] || '';
+                        let v = data[f.id] || '';
+                        if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) {
+                            v = '*******';
+                        }
                         let displayVal = v || '---';
-                        if (f.num && v) {
+                        if (f.num && v && v !== '*******') {
                             const num = parseFloat(v.toString().replace(/,/g, ''));
                             if (!isNaN(num)) displayVal = num.toLocaleString('en-US');
                         }
