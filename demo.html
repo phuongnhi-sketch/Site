@@ -432,7 +432,7 @@
                                             <td><strong>${sName}</strong> ${s.v2_data ? '<span style="font-size:0.6rem; background:var(--accent-blue); color:white; padding:2px 4px; border-radius:4px; margin-left:4px">V2</span>' : ''}</td>
                                             <td><span style="font-weight:600; color:#555">${sBrand || '---'}</span></td>
                                             <td style="font-weight:700; color:var(--accent-blue)">
-                                                ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN')) ? '*******' : (sPrice ? (isNaN(parseFloat(sPrice.toString().replace(/,/g,''))) ? sPrice : parseFloat(sPrice.toString().replace(/,/g,'')).toLocaleString() + ' đ') : '---')}
+                                                ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN')) ? '*******' : (sPrice ? (isNaN(parseFloat(sPrice.toString().replace(/,/g,''))) ? sPrice : parseFloat(sPrice.toString().replace(/,/g,'')).toLocaleString('en-US') + ' đ') : '---')}
                                             </td>
                                             <td>${s.owner_name || s.owner}</td>
                                             <td>${s.date}</td>
@@ -510,7 +510,7 @@
                                         // Masking logic
                                         const isFinancial = ['f2_1', 'f2_2', 'f7', 'f8'].includes(f.id);
                                         const hideMask = (u.role === 'PROJECT') || (site.status === 'FINISH' && u.role !== 'ADMIN');
-                                        const displayValue = (isFinancial && hideMask) ? '*******' : ((f.num && v && !isNaN(parseFloat(v.toString().replace(/,/g,'')))) ? parseFloat(v.toString().replace(/,/g,'')).toLocaleString() : (v||'---'));
+                                        const displayValue = (isFinancial && hideMask) ? '*******' : ((f.num && v && !isNaN(parseFloat(v.toString().replace(/,/g,'')))) ? parseFloat(v.toString().replace(/,/g,'')).toLocaleString('en-US') : (v||'---'));
 
                                         return `<div ${f.type==='textarea'?'style="grid-column: 1/span 2"':''}><label style="color:var(--text-muted); font-size:0.7rem; font-weight:700">${f.label.toUpperCase()}</label><p style="font-size:1rem; font-weight:600; margin-top:0.3rem; word-break:break-word; line-height:1.5">${f.id==='f3'&&v ? `<a href="${v}" target="_blank">📍 Mở Bản Đồ</a>` : displayValue}</p></div>`;
                                     }).join('')}
@@ -538,7 +538,7 @@
                                 <div style="padding:1rem; background:white; border:1px solid #eee; border-radius:14px; margin-bottom:1.2rem">
                                     <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:0.5rem">MPSA ESTIMATE</label>
                                     <div style="font-size:1.2rem; font-weight:800; color:var(--accent-blue); margin-bottom:0.5rem">
-                                        ${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString() + ' đ' : '---'}
+                                        ${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---'}
                                     </div>
                                     ${u.role === 'ADMIN' ? `
                                         <button class="btn-ghost" style="width:100%; font-size:0.75rem; padding:6px" onclick="window.mpsaPrompt('${site.id}')">Update MPSA</button>
@@ -546,7 +546,7 @@
                                     ${site.mpsa_history && site.mpsa_history.length > 0 ? `
                                         <div style="margin-top:0.8rem; font-size:0.7rem; color:var(--text-muted); max-height:80px; overflow-y:auto; padding-top:0.5rem; border-top:1px solid #f1f1f1">
                                             <strong>Lịch sử cập nhật:</strong><br>
-                                            ${site.mpsa_history.map(h => `- ${new Date(h.date).toLocaleDateString()}: ${parseFloat(h.value).toLocaleString()} đ`).join('<br>')}
+                                            ${site.mpsa_history.map(h => `- ${new Date(h.date).toLocaleDateString()}: ${parseFloat(h.value).toLocaleString('en-US')} đ`).join('<br>')}
                                         </div>
                                     ` : ''}
                                 </div>
