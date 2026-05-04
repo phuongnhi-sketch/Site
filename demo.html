@@ -297,10 +297,24 @@
             ],
             save: (site) => {
                 const ss = SiteService.getSites();
-                const isNew = !ss.find(s => s.id === site.id);
+                const isNew = !site.id || !ss.find(s => s.id === site.id);
                 const idx = ss.findIndex(s => s.id === site.id);
-                if (idx > -1) ss[idx] = { ...ss[idx], ...site };
-                else ss.push({ ...site, id: site.id || Date.now().toString(), comments: [] });
+                if (idx > -1) {
+                    ss[idx] = { ...ss[idx], ...site };
+                } else {
+                    if (!site.id) {
+                        const now = new Date();
+                        const yymmdd = now.getFullYear().toString().slice(-2) + 
+                                      (now.getMonth() + 1).toString().padStart(2, '0') + 
+                                      now.getDate().toString().padStart(2, '0');
+                        const todaySites = ss.filter(s => s.id && s.id.startsWith(yymmdd));
+                        let num = todaySites.length + 1;
+                        let newId = yymmdd + num.toString().padStart(2, '0');
+                        while (ss.find(s => s.id === newId)) { num++; newId = yymmdd + num.toString().padStart(2, '0'); }
+                        site.id = newId;
+                    }
+                    ss.push({ ...site, comments: [] });
+                }
                 try {
                     localStorage.setItem('site_poc_sites', JSON.stringify(ss));
                     if (isNew) {
@@ -1341,7 +1355,7 @@
 
             let csv = '\uFEFF'; // BOM for Excel UTF-8
             // Header
-            csv += 'ID,Code,Brand,Tên MB,Trạng thái,Vùng miền,Người nộp,Ngày nộp,Version,MPSA Estimate,';
+            csv += 'Mã hệ thống,Code,Brand,Tên MB,Trạng thái,Vùng miền,Người nộp,Ngày nộp,Version,MPSA Estimate,';
             csv += fields.map(f => f.label.replace(/,/g, '')).join(',');
             if (incQA) csv += ',Lịch sử thảo luận (Q&A)';
             csv += '\n';
