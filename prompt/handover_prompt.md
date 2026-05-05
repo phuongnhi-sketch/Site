@@ -34,6 +34,7 @@ Phiên làm việc đã hoàn tất toàn bộ **Phase 4** của dự án Site M
 - **Incident Log**: Ghi lại lịch sử sự cố và cách khắc phục trong `progress.md`.
 - **UI Login Fix**: Xóa bỏ nút đăng nhập Admin bị lặp lại và làm gọn tiêu đề "Hoặc đăng nhập nhanh".
 - **GitHub Sync**: Toàn bộ codebase đã được đẩy lên GitHub (master branch).
+- **Image Lightbox (Pop-up)**: Thay thế việc mở ảnh sang tab mới bằng cửa sổ pop-up (lightbox) hiện đại. Hỗ trợ chuyển đổi giữa ảnh Thumbnail và các ảnh mặt bằng bên trong bằng phím mũi tên hoặc nút điều hướng.
 
 ## 5. Các vấn đề tồn đọng (Cần xử lý tiếp)
 1. **Bản đồ (Map Dashboard)**: Hiện tại bản đồ SVG chưa phân chia ranh giới Nam - Bắc đúng như ý Project Owner (Chị Nhi). Cần kiểm tra lại các tỉnh thành và gán đúng group/màu sắc cho từng miền.
