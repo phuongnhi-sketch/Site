@@ -48,6 +48,21 @@
 - **Commit Message**: Phải sử dụng tiếng Anh, mô tả rõ ràng các thay đổi (ví dụ: "Upgrade demo.html to v2.0 - Gate Pipeline").
 - **Branching**: Mặc định làm việc trên branch `master` hoặc `main` cho bản POC.
 
+## 10. Quy tắc cập nhật Bản đồ (Map Dashboard) & demo.html ⭐ NEW
+- **Thận trọng với chuỗi lớn (SVG Map)**: Tuyệt đối không dùng các script thao tác chuỗi (regex/replace) bừa bãi lên `demo.html` để gắn SVG nếu không kiểm tra kĩ các anchor points.
+- **Xung đột `<style>`**: Lưu ý trong `demo.html` có chứa lệnh JavaScript `win.document.write('<style>...</style>')` phục vụ in PDF. Tuyệt đối không tiêm CSS mới làm hỏng cú pháp chuỗi của JS ở khu vực này.
+- **Tính trọn vẹn**: Bất kỳ sửa đổi nào trên Map Dashboard (chỉnh màu, thêm vùng, zoom) không được làm gián đoạn luồng render `handleRoute()` khiến trang bị trắng (blank page).
+
+## 11. Quy tắc Bảo toàn Ký tự & Encoding (UTF-8) ⭐ NEW
+- **UTF-8 Only**: File `demo.html` và mọi file tài liệu phải được lưu ở định dạng **UTF-8**. Tuyệt đối không lưu ở ANSI hay Windows-1252.
+- **Emoji Preservation**: Thận trọng tối đa khi dùng các script tự động (PowerShell/Python) để sửa text. Các ký tự icon/emoji (như ✍️, 👁️, 🖨️) rất dễ bị biến thành mã rác (mangled) nếu script không hỗ trợ tốt Unicode.
+- **Byte-level Safety**: Nếu phát hiện lỗi encoding, ưu tiên dùng các công cụ sửa lỗi ở cấp độ byte hoặc hex để phục hồi chính xác, tránh làm hỏng các ký tự xung quanh.
+
+## 12. Nguyên tắc Bảo tồn Tính năng cũ (Legacy Integrity) ⭐ NEW
+- **Tuyệt đối không sửa cũ**: Không được tự ý thay đổi, xóa bỏ hoặc "tối ưu hóa" các đoạn code, tính năng đã có từ trước nếu Nhi chưa yêu cầu hoặc chưa đồng ý rõ ràng.
+- **Ưu tiên thêm mới**: Mọi tính năng mới nên được viết bổ sung hoặc tách biệt, tránh can thiệp sâu vào logic cũ đang chạy ổn định.
+- **Xác nhận trước khi sửa**: Nếu phát hiện code cũ có lỗi hoặc cần cải tiến, phải báo cáo và chờ Nhi phê duyệt phương án sửa đổi trước khi thực hiện.
+
 ---
 **Trạng thái: ĐÃ KÍCH HOẠT (ACTIVE)**
-*Ngày cập nhật: 23/04/2026*
+*Ngày cập nhật: 05/05/2026 - v2.1*

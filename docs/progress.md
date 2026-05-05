@@ -1,11 +1,11 @@
-# PROGRESS.MD - TIẾN ĐỘ DỰ ÁN (v2.1 UI REFINEMENT)
+# PROGRESS.MD - TIẾN ĐỘ DỰ ÁN (v2.3 MAP DASHBOARD)
 
 Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án Site Management Web (POC).
 
 ## 1. Trạng thái hiện tại
-- **Phase**: 5 - Gate Pipeline & Versioning Implementation
-- **Status**: **Đã hoàn thành tối ưu giao diện Dashboard & Clean-up labels.**
-- **Cột mốc**: Hệ thống đã đồng bộ toàn bộ lên bản v2.0/v2.1, xóa bỏ thuật ngữ kỹ thuật (Gate) theo ý Nhi.
+- **Phase**: 5 - Gate Pipeline & Map Dashboard
+- **Status**: **Đã hoàn thành nâng cấp Map Dashboard (Vietnam SVG + RBAC + Statistics).**
+- **Cột mốc**: Hệ thống v2.3 với bản đồ Việt Nam tương tác, phân quyền theo vùng miền và thống kê pipeline theo region.
 
 ## 2. Các mốc quan trọng (Milestones)
 - [x] Thiết lập Framework Mode A (2026-04-22).
@@ -15,6 +15,8 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] **Triển khai v2.5: Trạng thái Rejected, Nâng cấp Xuất báo cáo & Tối ưu UI** (2026-05-04).
 - [x] **Định dạng tiền tệ và căn lề PDF chuyên nghiệp** (2026-05-04).
 - [x] **Đồng bộ nhãn phân quyền (BOD, Project) & Lời chào cá nhân hóa** (2026-05-04).
+- [x] **Triển khai Lightbox Gallery: Xem ảnh ngay trên trang & chuyển ảnh linh hoạt** (2026-05-05).
+- [x] **Nâng cấp Map Dashboard: SVG Việt Nam tương tác, thống kê NORTH/SOUTH, RBAC theo vùng miền** (2026-05-05).
 
 ## 3. Danh sách đã hoàn thành (v2.0)
 - [x] Hệ thống Status mới: Submitted / Survey / Sitepack / Deal / Complete.
@@ -35,4 +37,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 ## 6. Yêu cầu Phase Backend (Future Requirements)
 *Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*
 - **Auto Email Notifications**: Tích hợp gửi email thông báo tự động (Nodemailer / SendGrid / Amazon SES) tới địa chỉ email của User khi có Noti mới.
-- **Zalo ZNS / Zalo OA**: Bắn thông báo trực tiếp qua tin nhắn Zalo vào số điện thoại của User để đảm bảo tính tức thời.
+## 7. Nhật ký Khắc phục lỗi (Incident Log)
+- **2026-05-05: Lỗi Encoding Tiếng Việt & Emoji (Mangled Characters)**
+    - **Vấn đề**: Do thao tác lưu file hoặc chạy script tự động không đồng nhất định dạng, các ký tự tiếng Việt và Emoji trong `demo.html` bị biến thành mã rác (ví dụ: `ðŸ`, `ï¸`).
+    - **Hậu quả**: Làm hỏng giao diện Dashboard, các nút bấm icon và các tiêu đề tiếng Việt.
+    - **Khắc phục**: Đã thực hiện quét toàn bộ file ở cấp độ byte (Hex code) và thay thế thủ công các dòng lỗi bằng nội dung UTF-8 chuẩn.
+    - **Phòng ngừa**: Đã thêm quy tắc **#11** và **#12** vào `rule.md`. AI Agent tương lai tuyệt đối không dùng script thay thế chuỗi bừa bãi và phải luôn kiểm tra tính toàn vẹn của UTF-8 trước khi lưu.
