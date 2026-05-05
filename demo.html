@@ -365,6 +365,14 @@
             document.body.style.overflow = 'hidden';
         };
 
+        window.openSiteLightbox = (siteId, index) => {
+            const ss = SiteService.getSites();
+            const s = ss.find(item => item.id === siteId);
+            if (!s) return;
+            const imgs = [s.thumb, ...(s.inner_images || [])];
+            window.openLightbox(index, imgs);
+        };
+
         window.closeLightbox = () => {
             document.getElementById('lightbox').style.display = 'none';
             document.body.style.overflow = 'auto';
@@ -890,7 +898,7 @@
                         <div style="display:grid; grid-template-columns: 1fr 380px; gap:2rem">
                             <!-- Main Info -->
                             <div class="glass" style="padding:2.5rem; border-radius:28px">
-                                <img src="${site.thumb}" style="width:100%; border-radius:18px; margin-bottom:2rem; box-shadow:var(--shadow-soft); cursor:pointer" onclick="window.openLightbox(0, ['${site.thumb}', ...${JSON.stringify(site.inner_images || [])}])">
+                                <img src="${site.thumb}" style="width:100%; border-radius:18px; margin-bottom:2rem; box-shadow:var(--shadow-soft); cursor:pointer" onclick="window.openSiteLightbox('${site.id}', 0)">
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem">
                                     ${FormService.getFields().map(f => {
                     const v = data[f.id] || (f.id === 'f1' ? site.name : (f.id === 'f2_2' ? site.price : ''));
@@ -908,7 +916,7 @@
                                     <div style="margin-top:2.5rem">
                                         <label style="color:var(--text-muted); font-size:0.85rem; font-weight:700; margin-bottom:1rem; display:block">📸 HÌNH ẢNH MẶT BẰNG BÊN TRONG</label>
                                         <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
-                                            ${site.inner_images.map((img, idx) => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:12px; cursor:pointer; border:1px solid #ddd" onclick="window.openLightbox(${idx + 1}, ['${site.thumb}', ...${JSON.stringify(site.inner_images || [])}])">`).join('')}
+                                            ${site.inner_images.map((img, idx) => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:12px; cursor:pointer; border:1px solid #ddd" onclick="window.openSiteLightbox('${site.id}', ${idx + 1})">`).join('')}
                                         </div>
                                     </div>
                                 ` : ''}
