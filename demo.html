@@ -266,13 +266,130 @@
         .btn-back { background: white; border: 1px solid #ddd; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .btn-back:hover { background: #f8fafc; border-color: var(--accent-blue); color: var(--accent-blue); }
         .google-map-mock { height: 500px; background: #f1f5f9 url('https://www.google.com/maps/about/images/mymaps/mymaps-desktop-16x9.png'); background-size: cover; border-radius: 24px; position: relative; border: 4px solid white; box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center; }
-        .map-overlay { background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }</style>
+        .map-overlay { background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        
+        /* LIGHTBOX STYLES */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            object-fit: contain;
+            user-select: none;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .lightbox-close:hover { color: #bbb; }
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 50px;
+            cursor: pointer;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .lightbox-nav:hover { background: rgba(255,255,255,0.2); }
+        .lightbox-prev { left: 30px; }
+        .lightbox-next { right: 30px; }
+        .lightbox-counter {
+            color: white;
+            margin-top: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+    </style>
 </head>
 
 <body>
     <div id="app"></div>
 
+    <!-- LIGHTBOX MODAL -->
+    <div id="lightbox" class="lightbox-modal">
+        <span class="lightbox-close" onclick="window.closeLightbox()">&times;</span>
+        <div class="lightbox-nav lightbox-prev" onclick="window.navLightbox(-1)">&#10094;</div>
+        <img id="lightbox-img" class="lightbox-content">
+        <div class="lightbox-nav lightbox-next" onclick="window.navLightbox(1)">&#10095;</div>
+        <div id="lightbox-counter" class="lightbox-counter">1 / 1</div>
+    </div>
+
     <script>
+        // --- LIGHTBOX LOGIC ---
+        window.currentLightboxIndex = 0;
+        window.currentLightboxImages = [];
+
+        window.openLightbox = (index, images) => {
+            window.currentLightboxIndex = index;
+            window.currentLightboxImages = images;
+            const modal = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            
+            modal.style.display = 'flex';
+            img.src = images[index];
+            counter.innerText = `${index + 1} / ${images.length}`;
+            
+            // Lock scrolling
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeLightbox = () => {
+            document.getElementById('lightbox').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        window.navLightbox = (dir) => {
+            window.currentLightboxIndex += dir;
+            if (window.currentLightboxIndex >= window.currentLightboxImages.length) window.currentLightboxIndex = 0;
+            if (window.currentLightboxIndex < 0) window.currentLightboxIndex = window.currentLightboxImages.length - 1;
+            
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            img.src = window.currentLightboxImages[window.currentLightboxIndex];
+            counter.innerText = `${window.currentLightboxIndex + 1} / ${window.currentLightboxImages.length}`;
+        };
+
+        // Keyboard shortcuts for Lightbox
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('lightbox').style.display === 'flex') {
+                if (e.key === 'ArrowLeft') window.navLightbox(-1);
+                if (e.key === 'ArrowRight') window.navLightbox(1);
+                if (e.key === 'Escape') window.closeLightbox();
+            }
+        });
+
         // --- DATA LAYER ---
         const INIT_FIELDS = [
             { id: 'f0', label: 'Brand', type: 'checkboxes', options: ['TPC', 'CHANG', 'DQ', 'SW'], is_active: true, req: true },
@@ -773,7 +890,7 @@
                         <div style="display:grid; grid-template-columns: 1fr 380px; gap:2rem">
                             <!-- Main Info -->
                             <div class="glass" style="padding:2.5rem; border-radius:28px">
-                                <img src="${site.thumb}" style="width:100%; border-radius:18px; margin-bottom:2rem; box-shadow:var(--shadow-soft)">
+                                <img src="${site.thumb}" style="width:100%; border-radius:18px; margin-bottom:2rem; box-shadow:var(--shadow-soft); cursor:pointer" onclick="window.openLightbox(0, ['${site.thumb}', ...${JSON.stringify(site.inner_images || [])}])">
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem">
                                     ${FormService.getFields().map(f => {
                     const v = data[f.id] || (f.id === 'f1' ? site.name : (f.id === 'f2_2' ? site.price : ''));
@@ -791,7 +908,7 @@
                                     <div style="margin-top:2.5rem">
                                         <label style="color:var(--text-muted); font-size:0.85rem; font-weight:700; margin-bottom:1rem; display:block">📸 HÌNH ẢNH MẶT BẰNG BÊN TRONG</label>
                                         <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
-                                            ${site.inner_images.map(img => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:12px; cursor:pointer; border:1px solid #ddd" onclick="window.open(this.src)">`).join('')}
+                                            ${site.inner_images.map((img, idx) => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:12px; cursor:pointer; border:1px solid #ddd" onclick="window.openLightbox(${idx + 1}, ['${site.thumb}', ...${JSON.stringify(site.inner_images || [])}])">`).join('')}
                                         </div>
                                     </div>
                                 ` : ''}
