@@ -28,7 +28,20 @@ Phiên làm việc đã hoàn tất toàn bộ **Phase 4** của dự án Site M
 - [x] Cập nhật `demo.html`: Sửa lỗi thông báo (BOD L1/Project) và thêm Bộ lọc (Filters).
 - [x] GitHub: Đã commit và push toàn bộ thay đổi mới nhất (Bản v2.1 ổn định).
 
-## 4. Chỉ thị cho Agent tiếp theo
+## 4. Tóm tắt Phiên làm việc 05/05/2026 (Encoding & Map Restoration)
+- **Encoding Restoration**: Đã khắc phục triệt để lỗi mangled characters (tiếng Việt và emoji bị biến thành dấu `?`) trong `demo.html`. File hiện tại chuẩn **UTF-8**.
+- **Rule Enforcement**: Cập nhật `rule.md` với các quy tắc nghiêm ngặt về bảo toàn ký tự và **không tự ý sửa code cũ** (Legacy Integrity).
+- **Incident Log**: Ghi lại lịch sử sự cố và cách khắc phục trong `progress.md`.
+- **UI Login Fix**: Xóa bỏ nút đăng nhập Admin bị lặp lại và làm gọn tiêu đề "Hoặc đăng nhập nhanh".
+- **GitHub Sync**: Toàn bộ codebase đã được đẩy lên GitHub (master branch).
+
+## 5. Các vấn đề tồn đọng (Cần xử lý tiếp)
+1. **Bản đồ (Map Dashboard)**: Hiện tại bản đồ SVG chưa phân chia ranh giới Nam - Bắc đúng như ý Project Owner (Chị Nhi). Cần kiểm tra lại các tỉnh thành và gán đúng group/màu sắc cho từng miền.
+2. **Bảng thống kê (Stats Panel)**: Phần panel số liệu bên phải Dashboard đang thiếu dòng **Tổng cộng (Total)** cho tất cả các trạng thái.
+3. **Optimizing SVG**: SVG map hiện tại rất lớn, cần thận trọng khi thao tác chuỗi để tránh làm hỏng cấu trúc render của `demo.html`.
+
+## 6. Chỉ thị cho Agent tiếp theo
 - Xưng hô: Nhi - em.
-- Tuyệt đối không thay đổi logic Deep Cloning (`JSON.parse(JSON.stringify)`) khi lưu V1/V2 trong `SiteService.save`.
+- **BẢO TOÀN ENCODING**: Luôn kiểm tra file được lưu ở UTF-8. Tuyệt đối không dùng các script regex tự động lên `demo.html` nếu không có cơ chế backup/validate byte-level.
+- **KHÔNG SỬA CŨ**: Ưu tiên viết thêm hoặc tách module cho tính năng mới. Mọi sửa đổi vào logic hiện có (Dashboard, Login, Site List) phải được Nhi đồng ý trước.
 - Khi cập nhật UI, ưu tiên sử dụng `glassmorphism`, `flexbox` và các màu sắc từ `CSS variables` đã định nghĩa.
