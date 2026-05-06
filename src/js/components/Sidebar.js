@@ -8,10 +8,12 @@ export const Sidebar = {
     render: (active) => {
         const { user } = store.getState();
         const menuItems = [
-            { id: 'dashboard', icon: '📊', label: 'Tổng quan', roles: ['MB', 'BOD', 'PROJECT', 'ADMIN'] },
-            { id: 'sites', icon: '📍', label: 'Danh sách', roles: ['MB', 'BOD', 'PROJECT', 'ADMIN'] },
-            { id: 'sites/create', icon: '➕', label: 'Thêm hồ sơ', roles: ['MB', 'ADMIN'] },
-            { id: 'settings', icon: '⚙️', label: 'Cấu hình form', roles: ['ADMIN'] }
+            { id: 'dashboard', icon: '📊', label: 'Tổng quan', roles: ['MB', 'BOD_L1', 'BOD_L2', 'PROJECT', 'ADMIN'] },
+            { id: 'sites', icon: '📄', label: 'Hồ sơ MB', roles: ['MB', 'BOD_L1', 'BOD_L2', 'PROJECT', 'ADMIN'] },
+            { id: 'map', icon: '🗺️', label: 'Bản đồ', roles: ['MB', 'BOD_L1', 'BOD_L2', 'PROJECT', 'ADMIN'] },
+            { id: 'create', icon: '📝', label: 'Soạn hồ sơ', roles: ['MB', 'ADMIN'] },
+            { id: 'settings', icon: '⚙️', label: 'Quản lý Biểu mẫu', roles: ['ADMIN'] },
+            { id: 'users', icon: '👤', label: 'Quản lý User', roles: ['ADMIN'] }
         ];
 
         const menuHtml = menuItems
@@ -37,5 +39,13 @@ export const Sidebar = {
                 </div>
             </aside>
         `;
+    },
+    afterRender: async () => {
+        document.getElementById('logout-sidebar-btn')?.addEventListener('click', () => {
+            localStorage.removeItem('site_poc_user');
+            store.setState({ user: null });
+            window.location.hash = '#login';
+            window.location.reload();
+        });
     }
 };

@@ -1,11 +1,11 @@
-# PROGRESS.MD - TIẾN ĐỘ DỰ ÁN (v2.3 MAP DASHBOARD)
+# PROGRESS.MD - TIẾN ĐỘ DỰ ÁN (v3.0 SUPABASE + VERCEL)
 
 Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án Site Management Web (POC).
 
 ## 1. Trạng thái hiện tại
-- **Phase**: 5 - Gate Pipeline & Map Dashboard
-- **Status**: **Đã hoàn thành nâng cấp Map Dashboard (Vietnam SVG + RBAC + Statistics).**
-- **Cột mốc**: Hệ thống v2.3 với bản đồ Việt Nam tương tác, phân quyền theo vùng miền và thống kê pipeline theo region.
+- **Phase**: 6 - Triển khai Supabase + Vercel (Web thật)
+- **Status**: **Đang lên kế hoạch triển khai lên web có database thật.**
+- **Cột mốc**: Chuyển đổi từ POC (localStorage) sang Supabase (PostgreSQL + Auth + Storage) và deploy lên Vercel.
 
 ## 2. Các mốc quan trọng (Milestones)
 - [x] Thiết lập Framework Mode A (2026-04-22).
@@ -17,6 +17,7 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] **Đồng bộ nhãn phân quyền (BOD, Project) & Lời chào cá nhân hóa** (2026-05-04).
 - [x] **Triển khai Lightbox Gallery: Xem ảnh ngay trên trang & chuyển ảnh linh hoạt** (2026-05-05).
 - [x] **Nâng cấp Map Dashboard: SVG Việt Nam tương tác, thống kê NORTH/SOUTH, RBAC theo vùng miền** (2026-05-05).
+- [ ] **Phase 6: Triển khai Supabase + Vercel** — Web thật có database, auth, link truy cập (2026-05-06 →).
 
 ## 3. Danh sách đã hoàn thành (v2.0)
 - [x] Hệ thống Status mới: Submitted / Survey / Sitepack / Deal / Complete.
@@ -31,8 +32,13 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] Triển khai Xuất báo cáo (Export Report) đa phiên bản (2026-04-23).
 
 ## 5. Việc tiếp theo (Next Priorities)
-1. Tối ưu hóa hiệu năng và nén ảnh nâng cao.
-2. Quản lý người dùng thực tế (User Management). Đã hoàn thành, hủy bỏ AI.
+1. **[✅ XONG] Phase 6.1**: Cài Node.js, khởi tạo project, tạo SQL migration.
+2. **[✅ XONG] Phase 6.2**: Viết 7 service modules (Supabase).
+3. **[⏳ CHỜ NHI] Phase 6.1b**: Chạy SQL trên Supabase + tạo Storage bucket.
+4. **[TIẾP THEO] Phase 6.3**: Tách `demo.html` thành project Vite (CSS + Views + Router).
+5. **[ĐANG LÀM] Phase 6.4**: Test local (hiện đang dùng Mock data trong lúc chờ DB).
+6. **Phase 6.5**: Deploy lên Vercel.
+7. **Phase 6.6**: Kiểm thử & hoàn thiện.
 
 ## 6. Yêu cầu Phase Backend (Future Requirements)
 *Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*

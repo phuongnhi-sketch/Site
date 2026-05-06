@@ -1,62 +1,118 @@
-# ACTIVE_TASK.MD - MAP DASHBOARD NÂNG CẤP (v2.3) ✅ ĐÃ HOÀN THÀNH
+# ACTIVE_TASK.MD - TRIỂN KHAI SUPABASE + VERCEL (Phase 6)
 
 ## 1. Thông tin Task
-- **Tên Task**: Nâng cấp Map Dashboard — Vietnam SVG + RBAC + Statistics.
-- **Mục tiêu**: Hiển thị bản đồ Việt Nam hình chữ S, phân màu 2 miền, thống kê pipeline, phân quyền theo region.
+- **Tên Task**: Triển khai Site Management lên Web thật (Supabase + Vercel).
+- **Mục tiêu**: Chuyển đổi POC từ localStorage sang Supabase (Database + Auth + Storage), deploy lên Vercel.
+- **Phương án đã chọn**: Phương án A — Supabase + Vercel (Miễn phí).
 - **Project Owner**: Nhi.
+- **Ngày bắt đầu**: 2026-05-06.
 
-## 2. Phạm vi Task
-- **Map View**: Thay thế bản đồ Leaflet cũ bằng SVG Việt Nam tương tác (từ `vietnam.svg` do Nhi cung cấp).
-- **Statistics Panel**: Hiển thị số liệu Complete / Other (Pipeline) / Rejected cho từng miền Bắc-Nam bên cạnh bản đồ.
-- **Tương tác**: Click vào vùng miền → zoom vào Detail View; có nút "Back to Vietnam Map".
-- **RBAC**: MB North chỉ thấy vùng Bắc; MB South chỉ thấy vùng Nam. Admin/BOD xem tất cả.
-- **UI/CSS**: Cập nhật layout grid, stat-card styles, SVG styles cho `.map-region`.
+## 2. Thông tin Supabase
+- **Project URL**: `https://gvwmjtyctvstrovmxuni.supabase.co`
+- **Anon Key**: `sb_publishable_FWeBhUGHaKpMQdinSvmECA_knVPHnEy`
+- **Settings khi tạo**: Data API = ON, Auto expose tables = OFF, Automatic RLS = ON.
 
-## 3. Kế hoạch (Plan)
-- [x] Tạo `map_view_template.js` — logic MapView component mới.
-- [x] Tạo `new_map_view_fixed.js` — kết hợp SVG vào template.
-- [x] Cập nhật CSS trong `demo.html` — thêm `.map-layout`, `.stats-group`, `.map-region`, v.v.
-- [x] Cập nhật `demo.html` — replace MapView component cũ bằng phiên bản mới có SVG.
-- [x] Xác minh encoding UTF-8 và tính toàn vẹn của file.
+## 3. Kế hoạch & Trạng thái
 
-## 4. Trạng thái hiện tại
-- **✅ HOÀN THÀNH**: Toàn bộ Map Dashboard đã được tích hợp vào `demo.html`.
-- **✅ HOÀN THÀNH**: Encoding UTF-8 được xác nhận; ký tự tiếng Việt không bị hỏng.
-- **File chính**: `demo.html` (298KB — bao gồm SVG data).
-- **File helper** (có thể xóa sau): `map_view_template.js`, `new_map_view_fixed.js`, `apply_map_fix.js`, `svg_block.txt`.
+### Phase 6.1: Chuẩn bị & Thiết lập ✅ ĐANG LÀM
+- [x] Cài đặt Node.js v24.15.0 LTS + npm v11.12.1.
+- [x] Khởi tạo project: `package.json`, `vite.config.js`, `.env`.
+- [x] Cài dependencies: `vite`, `@supabase/supabase-js`.
+- [x] Tạo `.gitignore` (thêm `.env`, `dist/`).
+- [x] Tạo file SQL migration: `supabase/migration.sql` (7 bảng + RLS + seed + trigger).
+- [ ] **⏳ CHỜ NHI**: Chạy `supabase/migration.sql` trong Supabase SQL Editor.
+- [ ] **⏳ CHỜ NHI**: Tạo Storage Bucket `site-photos` (Public) trong Supabase Dashboard.
 
-## 5. Việc cần làm ở phiên tiếp theo
-- [ ] Commit toàn bộ thay đổi lên Git.
-- [ ] Test thực tế trên trình duyệt với tài khoản admin, mb_north, mb_south.
-- [ ] (Tương lai) Tích hợp Google Maps API chính thức thay thế placeholder Detail View.
-- [ ] (Tương lai) Tách MapView ra file `.js` riêng để giảm kích thước `demo.html`.
+### Phase 6.2: Tạo Services (Data Layer) ✅ HOÀN THÀNH
+- [x] `src/services/supabaseClient.js` — Supabase client singleton.
+- [x] `src/services/authService.js` — Đăng nhập/đăng xuất qua Supabase Auth.
+- [x] `src/services/siteService.js` — CRUD sites qua Supabase (thay localStorage).
+- [x] `src/services/notificationService.js` — CRUD notifications qua Supabase.
+- [x] `src/services/userService.js` — Quản lý profiles qua Supabase.
+- [x] `src/services/formService.js` — Quản lý form fields qua Supabase.
+- [x] `src/services/storageService.js` — Upload/nén ảnh lên Supabase Storage.
 
+### Phase 6.3: Tách demo.html → Project Vite ✅ HOÀN THÀNH
+- [x] Tách CSS từ demo.html → `src/styles/main.css`.
+- [x] Tách SVG Map data → `src/assets/vietnam-map.js`.
+- [x] Tách Views từ demo.html:
+  - [ ] `src/views/LoginView.js` — Màn hình đăng nhập (dùng AuthService).
+  - [ ] `src/views/DashboardView.js` — Trang chủ thống kê.
+  - [ ] `src/views/SiteListView.js` — Danh sách hồ sơ + filter + export.
+  - [ ] `src/views/DetailView.js` — Chi tiết hồ sơ + phê duyệt + timeline.
+  - [ ] `src/views/CreateSiteView.js` — Form tạo/sửa hồ sơ.
+  - [ ] `src/views/MapView.js` — Bản đồ Việt Nam SVG.
+  - [ ] `src/views/UserManagementView.js` — Quản lý user (Admin).
+  - [ ] `src/views/NotificationView.js` — Trang thông báo.
+- [ ] Tạo `src/router.js` — Hash-based router.
+- [ ] Tạo `src/app.js` — App entry point (sidebar, routing, auth check).
+- [ ] Tạo `index.html` mới cho Vite (entry point).
+- [x] Cập nhật tất cả Views: đổi từ sync → async/await.
+- [x] Thêm loading states (spinner/skeleton) cho Views.
 
-## 1. Thông tin Task
-- **Tên Task**: Tính năng Quản lý User và đăng nhập.
-- **Mục tiêu**: Bỏ hạng mục tích hợp AI. Thêm trang quản lý User (Name, Username, Password, Role, Email nhận noti).
-- **Project Owner**: Nhi.
+### Phase 6.4: Tạo Users & Test Local ✅ ĐANG LÀM
+- [ ] Tạo users mẫu trên Supabase Auth (admin, mb_north, mb_south, bod_l1, project).
+- [x] Seed sites mẫu (Mock data) vào database.
+- [ ] Chạy `npm run dev` → test local tất cả chức năng.
+- [ ] Test RBAC (phân quyền theo role).
+- [x] Sửa lỗi giao diện và điều hướng modal (Mock data), Export PDF/Excel.
 
-## 2. Phạm vi Task
-- **Data Layer**: Thêm `UserService` để lưu trữ dữ liệu người dùng vào `localStorage`.
-- **UI/UX**: 
-  - Thay đổi màn hình đăng nhập: Thêm form nhập Username/Password.
-  - Thêm menu "Quản lý User" vào Sidebar (chỉ Admin).
-  - Xây dựng giao diện danh sách user dạng bảng.
-  - Form thêm/sửa user (nhập tên, mật khẩu, mức độ sử dụng, email).
-- **Documents**: Cập nhật `progress.md` để loại bỏ AI.
+### Phase 6.5: Deploy lên Vercel ❌ CHƯA LÀM
+- [ ] Push code lên GitHub.
+- [ ] Kết nối GitHub → Vercel.
+- [ ] Cấu hình Environment Variables trên Vercel.
+- [ ] Deploy + test production link.
 
-## 3. Kế hoạch (Plan)
-- [x] Cập nhật `docs/progress.md`: Xóa mục AI.
-- [x] Cập nhật `demo.html`: Thêm `UserService`.
-- [x] Cập nhật `demo.html`: Thêm `UserManagementView` và logic CRUD User.
-- [x] Cập nhật `demo.html`: Sửa `#login` UI và logic để dùng Username/Password thực tế.
-- [x] Cập nhật `demo.html`: Triển khai **Lightbox Service** và Gallery ảnh chuyên nghiệp.
+### Phase 6.6: Kiểm thử & Hoàn thiện ❌ CHƯA LÀM
+- [ ] Test toàn bộ trên production.
+- [ ] Fix bugs.
+- [ ] Viết hướng dẫn sử dụng.
 
-## 4. Skills cần dùng
-- Frontend Development (HTML/JS).
+## 4. Cấu trúc file hiện tại
 
-## 5. Trạng thái hiện tại
-- **Đã hoàn thành**: Thêm trang quản lý User và tích hợp form Login.
-- **Đã hoàn thành**: Sửa lỗi bấm vào ảnh nhảy sang trang trắng; triển khai Lightbox để xem và lướt ảnh trực tiếp trên Dashboard/Detail.
+```
+d:\AI\Site_Management\
+├── .env                          ← Supabase credentials (KHÔNG COMMIT)
+├── .gitignore
+├── package.json                  ← Vite + Supabase deps
+├── vite.config.js                ← Vite config
+├── demo.html                     ← POC GỐC (giữ làm backup)
+├── supabase/
+│   └── migration.sql             ← SQL tạo bảng (CHỜ NHI CHẠY)
+├── src/
+│   ├── services/
+│   │   ├── supabaseClient.js     ✅
+│   │   ├── authService.js        ✅
+│   │   ├── siteService.js        ✅
+│   │   ├── notificationService.js ✅
+│   │   ├── userService.js        ✅
+│   │   ├── formService.js        ✅
+│   │   └── storageService.js     ✅
+│   ├── views/                    ← CẦN TÁCH TỪ demo.html
+│   │   └── (chưa tạo)
+│   └── styles/                   ← CẦN TÁCH TỪ demo.html
+│       └── (chưa tạo)
+└── docs/, work/, prompt/         ← Tài liệu giữ nguyên
+```
 
+## 5. Hướng dẫn cho phiên tiếp theo
+
+### Nhi cần làm TRƯỚC khi tiếp tục:
+1. Mở Supabase Dashboard → **SQL Editor** → paste nội dung `supabase/migration.sql` → **Run**.
+2. Mở Supabase Dashboard → **Storage** → **New Bucket** → tên `site-photos` → bật **Public**.
+
+### AI Agent cần làm:
+1. Kiểm tra Nhi đã chạy SQL chưa (test bằng Supabase client).
+2. Tiếp tục **Phase 6.3**: Tách `demo.html` thành modules:
+   - Bắt đầu với CSS extraction → `src/styles/main.css`.
+   - Sau đó tách từng View (LoginView → DashboardView → SiteListView → DetailView...).
+   - Tạo router và app entry point.
+   - Tạo `index.html` mới cho Vite.
+3. Chuyển tất cả Views sang async (vì Supabase calls là async).
+4. Test local bằng `npm run dev`.
+
+### Lưu ý quan trọng:
+- **KHÔNG xóa `demo.html`** — giữ làm backup/reference.
+- **KHÔNG dùng script thay thế hàng loạt** — tách thủ công từng phần (rule #11, #12).
+- **Kiểm tra UTF-8** mỗi khi tạo file mới có tiếng Việt.
+- Supabase SDK calls đều là **async/await** → Views cần refactor từ `render()` sang `async render()`.

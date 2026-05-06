@@ -10,6 +10,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <!-- Main Styles -->
     <link rel="stylesheet" href="src/assets/css/main.css">
 </head>
@@ -21,6 +25,15 @@
             <div class="spinner"></div>
             <p>Đang chuẩn bị hệ thống...</p>
         </div>
+    </div>
+
+    <!-- LIGHTBOX MODAL -->
+    <div id="lightbox" class="lightbox-modal">
+        <span class="lightbox-close" onclick="window.closeLightbox()">&times;</span>
+        <div class="lightbox-nav lightbox-prev" onclick="window.navLightbox(-1)">&#10094;</div>
+        <img id="lightbox-img" class="lightbox-content">
+        <div class="lightbox-nav lightbox-next" onclick="window.navLightbox(1)">&#10095;</div>
+        <div id="lightbox-counter" class="lightbox-counter">1 / 1</div>
     </div>
 
     <!-- Entrance Script (ES Module) -->

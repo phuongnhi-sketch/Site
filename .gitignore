@@ -20,3 +20,5 @@ logs/
 
 # Project specific
 .gemini/
+.env
+dist/

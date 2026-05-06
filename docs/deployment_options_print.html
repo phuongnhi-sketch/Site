@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phương án triển khai Site Management lên Web thật</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #1e293b;
+            line-height: 1.7;
+            background: white;
+            padding: 40px 60px;
+            font-size: 11pt;
+        }
+        
+        h1 {
+            font-size: 22pt;
+            color: #1e40af;
+            margin-bottom: 8px;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 12px;
+        }
+        
+        h2 {
+            font-size: 15pt;
+            color: #1e3a8a;
+            margin-top: 28px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1.5px solid #e2e8f0;
+        }
+        
+        h3 {
+            font-size: 12pt;
+            color: #334155;
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
+        
+        p, li {
+            margin-bottom: 6px;
+            color: #334155;
+        }
+        
+        .subtitle {
+            font-size: 10pt;
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background: #1e40af;
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 9pt;
+        }
+        
+        td {
+            padding: 8px 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tr:nth-child(even) { background: #f8fafc; }
+        
+        .highlight-box {
+            background: #eff6ff;
+            border: 1.5px solid #bfdbfe;
+            border-left: 5px solid #3b82f6;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        
+        .highlight-box.warning {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            border-left-color: #f59e0b;
+        }
+        
+        .highlight-box.success {
+            background: #f0fdf4;
+            border-color: #86efac;
+            border-left-color: #22c55e;
+        }
+
+        .highlight-box.tip {
+            background: #f0fdf4;
+            border-color: #86efac;
+            border-left-color: #10b981;
+        }
+        
+        .pro { color: #16a34a; font-weight: 600; }
+        .con { color: #dc2626; font-weight: 600; }
+        .warn { color: #d97706; font-weight: 600; }
+        
+        ul { padding-left: 24px; margin: 8px 0; }
+        li { margin-bottom: 4px; }
+        
+        .arch-box {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            line-height: 2;
+        }
+        
+        .page-break { page-break-before: always; }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 8pt;
+            font-weight: 700;
+        }
+        .badge.free { background: #dcfce7; color: #166534; }
+        .badge.star { background: #fef3c7; color: #92400e; }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 9pt;
+            color: #94a3b8;
+            text-align: center;
+        }
+        
+        @media print {
+            body { padding: 20px 30px; font-size: 10pt; }
+            h1 { font-size: 18pt; }
+            h2 { font-size: 13pt; break-after: avoid; }
+            h3 { font-size: 11pt; break-after: avoid; }
+            table { font-size: 9pt; break-inside: avoid; }
+            .page-break { break-before: page; }
+            .no-break { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Phương án triển khai Site Management lên Web thật</h1>
+    <p class="subtitle">Tài liệu phân tích & đề xuất — Ngày lập: 06/05/2026 — Dự án: Site Management POC v2.3</p>
+
+    <h2>📋 Tình hình hiện tại</h2>
+    <table>
+        <thead>
+            <tr><th>Hạng mục</th><th>Hiện trạng</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Frontend</strong></td><td>1 file <code>demo.html</code> (~311KB), tất cả HTML/CSS/JS gộp chung</td></tr>
+            <tr><td><strong>Dữ liệu</strong></td><td><code>localStorage</code> — chỉ lưu trên trình duyệt của 1 người, mất khi xóa cache</td></tr>
+            <tr><td><strong>Auth</strong></td><td>Giả lập phân quyền bằng JS (không có mật khẩu thật)</td></tr>
+            <tr><td><strong>Hosting</strong></td><td>Chạy local, không ai truy cập được từ bên ngoài</td></tr>
+            <tr><td><strong>Ảnh/File</strong></td><td>Encode base64 trong localStorage, không có cloud storage</td></tr>
+        </tbody>
+    </table>
+
+    <div class="highlight-box">
+        <strong>⚠️ Yêu cầu để "cho mọi người dùng thử":</strong><br>
+        1. <strong>Hosting</strong> — nơi chạy web (có link URL)<br>
+        2. <strong>Database</strong> — lưu dữ liệu chung cho mọi người<br>
+        3. <strong>Authentication</strong> — đăng nhập thật, bảo mật
+    </div>
+
+    <h2>⭐ Phương án A: Supabase + Vercel — ĐỀ XUẤT</h2>
+    <p><em>Giữ nguyên kiến trúc SPA, thay localStorage bằng Supabase (database cloud), deploy lên Vercel.</em></p>
+
+    <div class="arch-box">
+        👤 Người dùng → <strong>Vercel (Hosting)</strong> → Site Management SPA<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Supabase Cloud</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🗄️ PostgreSQL &nbsp;&nbsp; 🔐 Auth &nbsp;&nbsp; 📁 Storage
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>Hạng mục</th><th>Giải pháp</th><th>Chi phí</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Database</strong></td><td>Supabase PostgreSQL (500MB free)</td><td><span class="badge free">Miễn phí</span></td></tr>
+            <tr><td><strong>Auth</strong></td><td>Supabase Auth (50,000 users free)</td><td><span class="badge free">Miễn phí</span></td></tr>
+            <tr><td><strong>File Storage</strong></td><td>Supabase Storage (1GB free)</td><td><span class="badge free">Miễn phí</span></td></tr>
+            <tr><td><strong>Hosting</strong></td><td>Vercel (100GB bandwidth/tháng free)</td><td><span class="badge free">Miễn phí</span></td></tr>
+            <tr><td><strong>Domain</strong></td><td><code>site-management.vercel.app</code> hoặc domain riêng</td><td>0 - $10/năm</td></tr>
+        </tbody>
+    </table>
+
+    <div class="no-break">
+    <h3>Ưu điểm</h3>
+    <ul>
+        <li><span class="pro">✅</span> <strong>Miễn phí hoàn toàn</strong> cho giai đoạn dùng thử</li>
+        <li><span class="pro">✅</span> <strong>Nhanh nhất để triển khai</strong> — chỉ refactor phần data layer</li>
+        <li><span class="pro">✅</span> <strong>Database PostgreSQL thật</strong> — đúng chuẩn enterprise</li>
+        <li><span class="pro">✅</span> <strong>Auth có sẵn</strong> — đăng nhập bằng email/password</li>
+        <li><span class="pro">✅</span> <strong>Dashboard quản lý</strong> — xem/sửa data trực tiếp trên web Supabase</li>
+        <li><span class="pro">✅</span> <strong>Lưu ảnh trên cloud</strong> — không cần encode base64</li>
+        <li><span class="pro">✅</span> <strong>Dễ scale</strong> — upgrade plan khi cần</li>
+    </ul>
+    </div>
+
+    <div class="no-break">
+    <h3>Nhược điểm</h3>
+    <ul>
+        <li><span class="warn">⚠️</span> Phụ thuộc Supabase (vendor lock-in) — nhưng dùng PostgreSQL chuẩn nên dễ migrate</li>
+        <li><span class="warn">⚠️</span> Cần refactor code JS để gọi Supabase SDK thay vì localStorage</li>
+    </ul>
+    </div>
+
+    <div class="no-break">
+    <h3>Khối lượng công việc</h3>
+    <table>
+        <thead>
+            <tr><th>Bước</th><th>Mô tả</th><th>Ước lượng</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>Tạo project Supabase, thiết kế bảng DB</td><td>1 buổi</td></tr>
+            <tr><td>2</td><td>Refactor SiteService → gọi Supabase API</td><td>2-3 buổi</td></tr>
+            <tr><td>3</td><td>Refactor UserService + Auth → Supabase Auth</td><td>1-2 buổi</td></tr>
+            <tr><td>4</td><td>Chuyển upload ảnh → Supabase Storage</td><td>1 buổi</td></tr>
+            <tr><td>5</td><td>Tách demo.html thành nhiều file</td><td>1-2 buổi</td></tr>
+            <tr><td>6</td><td>Deploy lên Vercel + test</td><td>1 buổi</td></tr>
+            <tr><td colspan="2"><strong>Tổng</strong></td><td><strong>~7-10 buổi</strong></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>Phương án B: Next.js + Supabase (Full Rewrite)</h2>
+    <p><em>Viết lại hoàn toàn bằng Next.js (React framework), dùng Supabase cho database.</em></p>
+
+    <div class="arch-box">
+        👤 Người dùng → <strong>Vercel</strong> → <strong>Next.js App</strong> → API Routes<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Supabase (DB + Auth + Storage)
+    </div>
+
+    <div class="no-break">
+    <h3>Ưu & Nhược điểm</h3>
+    <ul>
+        <li><span class="pro">✅</span> Code sạch, chuyên nghiệp — chia component React rõ ràng</li>
+        <li><span class="pro">✅</span> SEO tốt — Server-side rendering</li>
+        <li><span class="pro">✅</span> Dễ bảo trì lâu dài & có thể thuê developer khác tiếp tục</li>
+        <li><span class="con">❌</span> <strong>Viết lại từ đầu</strong> — toàn bộ UI/logic phải code lại</li>
+        <li><span class="con">❌</span> <strong>Thời gian rất lâu</strong> — ước tính 3-6 tuần full-time</li>
+        <li><span class="con">❌</span> Chi phí cao hơn nếu thuê developer</li>
+    </ul>
+    </div>
+
+    <h2>Phương án C: VPS + Node.js + PostgreSQL (Tự host)</h2>
+    <p><em>Thuê server riêng (VPS), cài đặt Node.js backend + PostgreSQL, deploy code lên đó.</em></p>
+
+    <div class="arch-box">
+        👤 Người dùng → <strong>VPS Server</strong> → Nginx → <strong>Node.js / Express</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PostgreSQL + File System
+    </div>
+
+    <div class="no-break">
+    <h3>Ưu & Nhược điểm</h3>
+    <ul>
+        <li><span class="pro">✅</span> Toàn quyền kiểm soát, linh hoạt tối đa</li>
+        <li><span class="pro">✅</span> Phù hợp production lâu dài khi scale lớn</li>
+        <li><span class="con">❌</span> <strong>Tốn tiền hàng tháng</strong> — VPS từ $5-20/tháng</li>
+        <li><span class="con">❌</span> <strong>Cần kiến thức DevOps</strong> — cài đặt server, SSL, backup, bảo mật</li>
+        <li><span class="con">❌</span> Phải tự quản lý & khối lượng công việc lớn nhất</li>
+    </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>📊 So sánh tổng quan 3 phương án</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Tiêu chí</th>
+                <th>A: Supabase + Vercel ⭐</th>
+                <th>B: Next.js Rewrite</th>
+                <th>C: VPS Tự host</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Thời gian</strong></td><td><span class="pro">🟢 ~1-2 tuần</span></td><td><span class="con">🔴 3-6 tuần</span></td><td><span class="con">🔴 3-6 tuần</span></td></tr>
+            <tr><td><strong>Chi phí</strong></td><td><span class="pro">🟢 Miễn phí</span></td><td><span class="pro">🟢 Miễn phí</span></td><td><span class="warn">🟡 $5-20/tháng</span></td></tr>
+            <tr><td><strong>Độ khó</strong></td><td><span class="pro">🟢 Trung bình</span></td><td><span class="con">🔴 Cao</span></td><td><span class="con">🔴 Rất cao</span></td></tr>
+            <tr><td><strong>Giữ code hiện tại</strong></td><td><span class="pro">🟢 Phần lớn</span></td><td><span class="con">🔴 Viết lại hết</span></td><td><span class="warn">🟡 Tùy cách làm</span></td></tr>
+            <tr><td><strong>Bảo trì</strong></td><td><span class="pro">🟢 Dễ</span></td><td><span class="pro">🟢 Dễ</span></td><td><span class="con">🔴 Khó</span></td></tr>
+            <tr><td><strong>Scale production</strong></td><td><span class="warn">🟡 Tốt</span></td><td><span class="pro">🟢 Rất tốt</span></td><td><span class="pro">🟢 Rất tốt</span></td></tr>
+            <tr><td><strong>Phù hợp</strong></td><td>Dùng thử / MVP</td><td>Production</td><td>Production</td></tr>
+        </tbody>
+    </table>
+
+    <div class="highlight-box tip">
+        <strong>💡 ĐỀ XUẤT: Phương án A (Supabase + Vercel)</strong><br><br>
+        1. <strong>Nhanh nhất</strong> — có link cho mọi người dùng thử trong 1-2 tuần<br>
+        2. <strong>Miễn phí</strong> — không tốn đồng nào cho giai đoạn thử nghiệm<br>
+        3. <strong>Giữ được công sức</strong> — không cần viết lại UI, chỉ refactor phần data<br>
+        4. <strong>Dễ nâng cấp</strong> — sau khi validate, nếu cần thì rewrite sang Next.js
+    </div>
+
+    <h2>🗺️ Lộ trình đề xuất</h2>
+    <div class="arch-box" style="text-align: left; padding: 24px 32px;">
+        <strong>📍 Hiện tại:</strong> POC Local (demo.html + localStorage)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp; <em>(1-2 tuần)</em><br>
+        <strong>🚀 Phase 1:</strong> Supabase + Vercel — Link cho mọi người dùng thử<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp; <em>(Sau khi validate với user)</em><br>
+        <strong>🤔 Quyết định:</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;→ Đủ dùng? → Tiếp tục dùng + upgrade plan Supabase<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;→ Cần pro hơn? → <strong>🏗️ Phase 2:</strong> Rewrite Next.js (Production chuyên nghiệp)
+    </div>
+
+    <h2 style="margin-top: 36px;">✅ Quyết định</h2>
+    <div class="highlight-box success">
+        <strong>Ngày 06/05/2026:</strong> Chị Nhi đã chọn <strong>Phương án A: Supabase + Vercel</strong>.<br>
+        Triển khai bắt đầu ngay — mục tiêu có link dùng thử trong 1-2 tuần.
+    </div>
+
+    <div class="footer">
+        <p>Tài liệu dự án Site Management — Được tạo bởi AI Assistant — 06/05/2026</p>
+    </div>
+
+</body>
+</html>

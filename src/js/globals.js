@@ -1,0 +1,393 @@
+import { SiteService } from '../services/siteService.js';
+import { FormService } from '../services/formService.js';
+import { NotificationService } from '../services/notificationService.js';
+import { store } from './store.js';
+
+export const STATUS_LABELS = {
+    DRAFT: 'Bản nháp',
+    SUBMITTED: 'Chờ duyệt',
+    GATE1: 'Survey / RSO',
+    GATE2: 'Sitepack / T-Code',
+    GATE3: 'Deal / P-Code',
+    FINISH: 'Đã hoàn thành',
+    REJECTED: 'Đã từ chối'
+};
+window.STATUS_LABELS = STATUS_LABELS;
+
+
+window.STATUS_LABELS = STATUS_LABELS;
+
+        // --- LIGHTBOX LOGIC ---
+        window.currentLightboxIndex = 0;
+        window.currentLightboxImages = [];
+
+        window.openLightbox = (index, images) => {
+            window.currentLightboxIndex = index;
+            window.currentLightboxImages = images;
+            const modal = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+
+            modal.style.display = 'flex';
+            img.src = images[index];
+            counter.innerText = `${index + 1} / ${images.length}`;
+
+            // Lock scrolling
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.openSiteLightbox = async (siteId, index) => {
+            const ss = await SiteService.getSites();
+            const s = ss.find(item => item.id === siteId);
+            if (!s) return;
+            const imgs = [s.thumb, ...(s.inner_images || [])];
+            window.openLightbox(index, imgs);
+        };
+
+        window.closeLightbox = () => {
+            document.getElementById('lightbox').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        window.navLightbox = (dir) => {
+            window.currentLightboxIndex += dir;
+            if (window.currentLightboxIndex >= window.currentLightboxImages.length) window.currentLightboxIndex = 0;
+            if (window.currentLightboxIndex < 0) window.currentLightboxIndex = window.currentLightboxImages.length - 1;
+
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            img.src = window.currentLightboxImages[window.currentLightboxIndex];
+            counter.innerText = `${window.currentLightboxIndex + 1} / ${window.currentLightboxImages.length}`;
+        };
+
+        // Keyboard shortcuts for Lightbox
+        window.addEventListener('keydown', (e) => {
+            const lb = document.getElementById('lightbox');
+            if (lb && lb.style.display === 'flex') {
+                if (e.key === 'ArrowLeft') window.navLightbox(-1);
+                if (e.key === 'ArrowRight') window.navLightbox(1);
+                if (e.key === 'Escape') window.closeLightbox();
+            }
+        });
+
+        window.refreshMap = () => {
+            if (MapView.render) MapView.render();
+        };
+
+        // --- GLOBAL ACTIONS ---
+        const resizeImage = (file, callback) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; let height = img.height; const MAX = 800;
+                    if (width > height) { if (width > MAX) { height *= MAX / width; width = MAX; } }
+                    else { if (height > MAX) { width *= MAX / height; height = MAX; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.save = async (st) => {
+            const u = store.getState().user;
+            let currentThumb = window.lastB64;
+            if (!currentThumb) {
+                const imgEl = document.getElementById('p-img');
+                if (imgEl && imgEl.src && imgEl.src.startsWith('data:image')) {
+                    currentThumb = imgEl.src;
+                } else if (window.currentId) {
+                    const existingSite = (await SiteService.getSites()).find(s => s.id === window.currentId);
+                    if (existingSite) currentThumb = existingSite.thumb;
+                }
+            }
+
+            const ans = {};
+            (await FormService.getFields()).forEach(f => {
+                if (f.type === 'checkboxes') {
+                    const checkboxes = document.querySelectorAll(`input[name="${f.id}"]:checked`);
+                    ans[f.id] = Array.from(checkboxes).map(cb => cb.value).join(', ');
+                } else {
+                    const el = document.getElementById(f.id);
+                    ans[f.id] = el ? el.value : '';
+                }
+            });
+
+            if (st === 'SUBMITTED') {
+                const missing = [];
+                const invalidNum = [];
+                (await FormService.getFields()).forEach(f => {
+                    const val = ans[f.id] ? ans[f.id].toString().trim() : '';
+                    if (f.req && val === '') missing.push(f.label);
+                    if (val !== '' && f.num) {
+                        const sanitized = val.replace(/,/g, '');
+                        if (isNaN(Number(sanitized))) invalidNum.push(f.label);
+                    }
+                });
+                if (!currentThumb || currentThumb.includes('unsplash.com')) {
+                    missing.push('Ảnh mặt tiền thật (1 ảnh Thumbnail)');
+                }
+
+                if (missing.length > 0) {
+                    alert('LỖI: Chưa thể nộp hồ sơ!\nBạn cần điền đầy đủ các thông tin bắt buộc sau:\n\n- ' + missing.join('\n- '));
+                    return; // Abort
+                }
+                if (invalidNum.length > 0) {
+                    alert('LỖI ĐỚNH DẠNG SỐ!\nCác cột sau BẮT BUỘC PHẢI LÀ SỐ (bạn không được gõ chữ "tr" hay "m2" vào ô này, chỉ gõ số, có thể dùng dấu phẩy cho hàng ngàn):\n\n- ' + invalidNum.join('\n- '));
+                    return; // Abort
+                }
+            }
+
+            const ss = (await SiteService.getSites());
+            const exSite = window.currentId ? ss.find(s => s.id === window.currentId) : null;
+
+            const site = {
+                id: window.currentId || Date.now().toString(),
+                owner: exSite ? exSite.owner : u.id,
+                owner_name: exSite ? exSite.owner_name : u.name,
+                region: exSite ? exSite.region : (u.role === 'ADMIN' ? (document.getElementById('admin-region')?.value || 'ALL') : u.region),
+                date: exSite ? exSite.date : new Date().toLocaleDateString(),
+                status: (st === 'UPDATE_V2' && exSite) ? (exSite.status || 'GATE3') : st,
+                thumb: currentThumb || (exSite ? exSite.thumb : 'https://images.unsplash.com/photo-1582410118839-959c86940d99?w=400&h=400'),
+                inner_images: window.currentInnerImages || (exSite ? exSite.inner_images : []),
+                name: (st === 'UPDATE_V2' && exSite) ? exSite.name : (ans['f1'] || 'Site mới'),
+                brand: (st === 'UPDATE_V2' && exSite) ? exSite.brand : (ans['f0'] || '---'),
+                price: (st === 'UPDATE_V2' && exSite) ? exSite.price : (parseFloat(ans['f2_2']?.toString().replace(/,/g, '')) || 0),
+                answers: (st === 'UPDATE_V2' && exSite) ? JSON.parse(JSON.stringify(exSite.answers)) : JSON.parse(JSON.stringify(ans)),
+                v2_data: (st === 'UPDATE_V2') ? JSON.parse(JSON.stringify(ans)) : (exSite ? JSON.parse(JSON.stringify(exSite.v2_data)) : null),
+                code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (exSite?.code || 'MB-' + Math.floor(Math.random() * 9000 + 1000)) : (exSite ? exSite.code : '')
+            };
+            if (await SiteService.save(site)) {
+                alert('Đã lưu hồ sơ thành công!');
+                window.editingV2 = false;
+                window.currentId = null;
+                location.hash = (st === 'UPDATE_V2') ? '#detail?id=' + site.id : '#sites';
+            }
+        };
+
+        window.prevMulti = async (input) => {
+            if (!input.files) return;
+            window.currentInnerImages = window.currentInnerImages || [];
+            const prv = document.getElementById('multi-preview');
+            // Reset ui in creation mode
+            if (!window.currentId && window.currentInnerImages.length === 0) prv.innerHTML = '';
+
+            for (let f of input.files) {
+                resizeImage(f, (resizedB64) => {
+                    window.currentInnerImages.push(resizedB64);
+                    const img = document.createElement('img');
+                    img.src = resizedB64;
+                    img.style = "width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;";
+                    prv.appendChild(img);
+                });
+            }
+        };
+
+        window.prev = (i) => {
+            if (i.files && i.files[0]) {
+                resizeImage(i.files[0], (resizedB64) => {
+                    window.lastB64 = resizedB64;
+                    document.getElementById('p-img').src = resizedB64;
+                    document.getElementById('p-ui').style.display = 'block';
+                    document.getElementById('h-ui').style.display = 'none';
+                });
+            }
+        };
+        window.upStatus = async (id, st) => {
+            if (confirm(`Bạn có chắc chắn muốn chuyển trạng thái sang bước [${STATUS_LABELS[st]}]?`)) {
+                await SiteService.updateStatus(id, st, `Đã chuyển trạng thái sang ${STATUS_LABELS[st]}`);
+                location.reload();
+            }
+        };
+        window.siteFilters = { search: '', region: 'ALL', brand: 'ALL', status: 'ALL' };
+        window.setFilter = (key, val) => { window.siteFilters[key] = val; if (window.router) window.router.handleRoute(); };
+
+        window.doComment = async (id) => { const text = document.getElementById('msg').value; if (!text) return; await SiteService.addComment(id, text, store.getState().user.name); location.reload(); };
+        window.unlock = async (id) => { await SiteService.updateStatus(id, 'DRAFT', 'Admin đã mở khóa bản ghi.'); alert('Đã mở khóa!'); location.reload(); };
+        window.reqEdit = async (id) => { const r = prompt('Lý do sửa:'); if (r) { await SiteService.addComment(id, `YÊU CẦU SỬA: ${r}`, store.getState().user.name); alert('Đã gửi yêu cầu!'); } };
+        window.markAllRead = () => {
+            const u = store.getState().user;
+            const ns = NotificationService.getNotifs();
+            ns.forEach(n => { if (n.uId === u.id) n.isRead = true; });
+            localStorage.setItem('site_poc_notifs', JSON.stringify(ns));
+            location.reload();
+        };
+        window.delSite = (id) => { if (confirm('Bạn có chắc chắn muốn xóa hồ sơ mặt bằng này? Hành động này không thể hoàn tác.')) { let ss = JSON.parse(localStorage.getItem('site_poc_sites')) || []; ss = ss.filter(s => s.id !== id); localStorage.setItem('site_poc_sites', JSON.stringify(ss)); location.reload(); } };
+        window.addField = () => { const l = prompt('Tên cột:'); if (l) { const t = prompt('Loại (text, select, textarea):', 'text') || 'text'; const fs = FormService.getFields(true); fs.push({ id: 'f' + Date.now(), label: l, type: t, is_active: true }); FormService.saveFields(fs); if (window.router) window.router.handleRoute(); } };
+        window.mpsaPrompt = async (id) => { const v = prompt('Nhập MPSA mới (Số):'); if (v) { await SiteService.updateMPSA(id, v, ''); location.reload(); } };
+        window.ver2 = async (id) => { if (confirm('Tạo Version 2 từ dữ liệu hiện tại?')) { await SiteService.createVersion2(id); alert('Đã tạo V2! Giờ bạn có thể chỉnh sửa Version 2.'); location.reload(); } };
+        window.editV2 = (id) => { window.currentId = id; window.editingV2 = true; location.hash = '#create?id=' + id; };
+        window.tf = (id, a) => { FormService.updateField(id, { is_active: a }); if (window.router) window.router.handleRoute(); };
+
+        window.exportCSV = async () => {
+            const u = store.getState().user;
+            const selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+            let sites = (await SiteService.getSites());
+            if (selectedIds.length > 0) {
+                sites = sites.filter(s => selectedIds.includes(s.id));
+            }
+            const fields = (await FormService.getFields());
+            const incQA = window.siteFilters?.includeQA;
+            const verOpt = window.siteFilters?.exportVer || 'BOTH';
+
+            let csv = '\uFEFF'; // BOM for Excel UTF-8
+            // Header
+            csv += 'Mã hệ thống,Code,Brand,Tên MB,Trạng thái,Vùng miền,Người nộp,Ngày nộp,Version,MPSA Estimate,';
+            csv += fields.map(f => f.label.replace(/,/g, '')).join(',');
+            if (incQA) csv += ',Lịch sử thảo luận (Q&A)';
+            csv += '\n';
+
+            sites.forEach(s => {
+                const processRow = (data, ver) => {
+                    const isMasked = (u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN') || (s.status === 'REJECTED' && u.role !== 'ADMIN'));
+                    let row = [
+                        s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status],
+                        s.region, s.owner_name, s.date, ver,
+                        isMasked ? '*******' : (s.current_mpsa || '0')
+                    ].map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"');
+
+                    fields.forEach(f => {
+                        let val = data[f.id] || '';
+                        if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) {
+                            val = '*******';
+                        }
+                        row.push('"' + val.toString().replace(/"/g, '""') + '"');
+                    });
+                    if (incQA) {
+                        const comments = (s.comments || []).map(c => `[${new Date(c.date).toLocaleDateString()} ${c.author}]: ${c.text}`).join(' | ');
+                        row.push('"' + comments.replace(/"/g, '""') + '"');
+                    }
+                    return row.join(',') + '\n';
+                };
+
+                if (verOpt === 'BOTH') {
+                    csv += processRow(s.answers || {}, 'V1 (Original)');
+                    if (s.v2_data) csv += processRow(s.v2_data, 'V2 (Final)');
+                } else {
+                    const data = s.v2_data || s.answers || {};
+                    csv += processRow(data, s.v2_data ? 'V2 (Final)' : 'V1 (Original)');
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Site_Report_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        };
+
+        window.toggleAll = (master) => {
+            document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = master.checked);
+        };
+
+        window.printSelected = async () => {
+            const u = store.getState().user;
+            let selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+            if (selectedIds.length === 0) {
+                selectedIds = (await SiteService.getSites()).map(s => s.id);
+            }
+
+            const incQA = window.siteFilters?.includeQA;
+            const verOpt = window.siteFilters?.exportVer || 'BOTH';
+
+            const win = window.open('', '', 'height=800,width=1000');
+            win.document.write('<html><head><title>Báo cáo chọn lọc</title>');
+            win.document.write('<style>@page { size: auto; margin: 20mm 15mm; } body{font-family:sans-serif;padding:0} .page-break{page-break-after:always; border-bottom:2px dashed #eee; padding-bottom:40px; margin-bottom:40px} .header{display:flex;justify-content:space-between;margin-bottom:20px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .field label{font-weight:bold;font-size:11px;color:#666;display:block} .field p{margin:3px 0;font-size:13px} .thumb-img{width:350px;border-radius:10px;margin-bottom:15px} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px} .images-grid img{height:100px;width:100%;object-fit:cover;border-radius:8px} .version-tag{background:#2563EB;color:white;padding:4px 10px;border-radius:4px;font-size:11px} h2{color:#2563EB; font-size:1.2rem; margin-top:20px; border-left:4px solid #2563EB; padding-left:10px}</style>');
+            win.document.write('</head><body>');
+
+            for (let index = 0; index < selectedIds.length; index++) { const id = selectedIds[index];
+                const site = (await SiteService.getSites()).find(s => s.id === id);
+                if (!site) return;
+
+                win.document.write(`<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`);
+                win.document.write(`<div class="header"><h1>#${index + 1}. ${site.name}</h1><div class="version-tag">Mã: ${site.code}</div></div>`);
+                win.document.write(`<img src="${site.thumb}" class="thumb-img">`);
+
+                const renderSection = async (data, title) => {
+                    const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
+                    win.document.write(`<h2>${title}</h2><div class="grid">`);
+                    const fields = await FormService.getFields();
+                    fields.forEach(f => {
+                        let v = data[f.id] || '';
+                        if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) {
+                            v = '*******';
+                        }
+                        let displayVal = v || '---';
+                        if (f.num && v && v !== '*******') {
+                            const num = parseFloat(v.toString().replace(/,/g, ''));
+                            if (!isNaN(num)) displayVal = num.toLocaleString('en-US');
+                        }
+                        win.document.write(`<div class="field"><label>${f.label}</label><p>${displayVal}</p></div>`);
+                    });
+                    win.document.write('</div>');
+                };
+
+                const verOpt = window.siteFilters?.exportVer || 'BOTH';
+                if (verOpt === 'BOTH') {
+                    await renderSection(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
+                    if (site.v2_data) await renderSection(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
+                } else {
+                    const data = site.v2_data || site.answers || {};
+                    const title = site.v2_data ? 'PHIÊN BẢN CHỐT DEAL (V2)' : 'PHIÊN BẢN GỐC (V1)';
+                    await renderSection(data, title);
+                }
+
+                if (site.inner_images && site.inner_images.length > 0) {
+                    win.document.write('<h3>Hình ảnh chi tiết</h3><div class="images-grid">');
+                    site.inner_images.forEach(img => win.document.write(`<img src="${img}">`));
+                    win.document.write('</div>');
+                }
+
+                if (incQA && site.comments && site.comments.length > 0) {
+                    win.document.write('<h3>Lịch sử thảo luận</h3>');
+                    site.comments.forEach(c => {
+                        win.document.write(`<div style="margin-bottom:8px;padding:8px;background:#f5f5f5;border-radius:6px;font-size:12px"><strong>${c.author}</strong>: ${c.text}</div>`);
+                    });
+                }
+                win.document.write('</div>');
+            }
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
+        };
+
+        window.printDetail = (id) => {
+            // Re-use printSelected for a single ID to ensure UI consistency
+            document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = false);
+            const target = document.querySelector(`.site-checkbox[data-id="${id}"]`);
+            if (target) target.checked = true;
+            window.printSelected();
+        };
+
+        window.login = (role, loc, brand) => {
+            const user = {
+                id: (role.toLowerCase() + '-' + loc + (brand ? '-' + brand : '')).toLowerCase(),
+                name: role === 'ADMIN' ? 'Chị Nhi' :
+                    (role === 'MB' ? ('MB ' + loc) :
+                        (role === 'BOD_L1' ? 'BOD' :
+                            (role === 'BOD_L2' ? brand :
+                                'Project'))),
+                role, region: loc, brand
+            };
+            localStorage.setItem('site_poc_user', JSON.stringify(user)); location.href = '#dashboard'; location.reload();
+        };
+
+        window.doLogin = async () => {
+            const uInput = document.getElementById('login-user').value;
+            const pInput = document.getElementById('login-pass').value;
+            const users = (await UserService.getUsers());
+            const valid = users.find(u => u.username === uInput && u.password === pInput);
+            if (valid) {
+                const uObj = { id: valid.id, name: valid.name, role: valid.role, region: valid.region, brand: valid.brand, email: valid.email };
+                localStorage.setItem('site_poc_user', JSON.stringify(uObj));
+                location.href = '#dashboard'; location.reload();
+            } else {
+                alert('Sai tài khoản hoặc mật khẩu!');
+            }
+        };
+
+        

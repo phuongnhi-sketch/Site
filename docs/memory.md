@@ -28,3 +28,5 @@ Tài liệu này lưu trữ các thông tin cốt lõi, tầm nhìn và các quy
 - [2026-04-23]: Áp dụng quy tắc **Brand-based visibility** cho BOD Level 2.
 - [2026-04-23]: Thống nhất lưu **Stage Context** cho mọi comment trong Timeline.
 - [2026-04-23]: Thiết lập quy tắc **Finish Masking**: Ẩn giá thuê với MB/BOD/PJ sau khi hồ sơ kết thúc.
+- [2026-05-06]: **Quyết định triển khai Phase 6**: Chọn Phương án A (Supabase + Vercel) để đưa lên web thật.
+- [2026-05-06]: **Tech Stack mới**: Vite (vanilla JS) + Supabase (PostgreSQL + Auth + Storage) + Vercel (Hosting).
