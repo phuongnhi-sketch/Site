@@ -17,7 +17,8 @@ export const Navbar = {
                         ${unreadCount > 0 ? `<span style="position:absolute; top:-5px; right:-5px; background:red; color:white; font-size:0.6rem; padding:2px 5px; border-radius:50%; font-weight:800">${unreadCount}</span>` : ''}
                     </div>
                     <div style="font-weight:700">
-                        ${user?.name || 'User'} (${user?.role === 'BOD_L1' ? 'BOD' : (user?.role === 'BOD_L2' ? user.brand : user?.role || 'Guest')})
+                        ${user?.name || 'User'}
+                        ${(user?.role && user?.role !== 'ADMIN') ? `<span style="font-weight:normal; opacity:0.8">(${user?.role === 'BOD_L1' ? 'BOD' : (user?.role === 'BOD_L2' ? user.brand : (user?.role === 'MB' ? 'MB ' + user.region : user?.role))})</span>` : ''}
                     </div>
                 </div>
             </nav>

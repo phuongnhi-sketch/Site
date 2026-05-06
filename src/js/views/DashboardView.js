@@ -49,27 +49,27 @@ export const DashboardView = {
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.2rem">
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid var(--accent-blue)">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${submitted}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Submitted</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Đã nộp</p>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid #7E22CE">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${gate1}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Survey</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Gate 1</p>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid var(--accent-azure)">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${gate2}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Sitepack</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Gate 2</p>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid #B45309">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${gate3}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Deal</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Gate 3</p>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid #10B981">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${finished}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Complete</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Hoàn thành</p>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid #EF4444">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${rejected}</h2>
-                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Rejected</p>
+                        <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem; text-transform:uppercase; margin-top:0.5rem">Từ chối</p>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:6px solid #64748B">
                         <h2 style="font-size:2rem; color:var(--primary-color)">${draft}</h2>

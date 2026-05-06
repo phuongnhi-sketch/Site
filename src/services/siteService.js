@@ -1,8 +1,8 @@
 import { supabase } from './supabaseClient.js';
 
 const STATUS_LABELS = {
-    'DRAFT': 'Draft', 'SUBMITTED': 'Submitted', 'GATE1': 'Survey',
-    'GATE2': 'Sitepack', 'GATE3': 'Deal', 'FINISH': 'Complete', 'REJECTED': 'Rejected',
+    'DRAFT': 'Bản nháp', 'SUBMITTED': 'Đã nộp', 'GATE1': 'Gate 1',
+    'GATE2': 'Gate 2', 'GATE3': 'Gate 3', 'FINISH': 'Hoàn thành', 'REJECTED': 'Từ chối',
 };
 
 export { STATUS_LABELS };
