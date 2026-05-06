@@ -1,17 +1,8 @@
-import { SiteService } from '../services/siteService.js';
+import { SiteService, STATUS_LABELS } from '../services/siteService.js';
 import { FormService } from '../services/formService.js';
 import { NotificationService } from '../services/notificationService.js';
 import { store } from './store.js';
 
-export const STATUS_LABELS = {
-    DRAFT: 'Bản nháp',
-    SUBMITTED: 'Chờ duyệt',
-    GATE1: 'Survey / RSO',
-    GATE2: 'Sitepack / T-Code',
-    GATE3: 'Deal / P-Code',
-    FINISH: 'Đã hoàn thành',
-    REJECTED: 'Đã từ chối'
-};
 window.STATUS_LABELS = STATUS_LABELS;
 
 
