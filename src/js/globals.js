@@ -149,6 +149,7 @@ window.STATUS_LABELS = STATUS_LABELS;
                 price: (st === 'UPDATE_V2' && exSite) ? exSite.price : (parseFloat(ans['f2_2']?.toString().replace(/,/g, '')) || 0),
                 answers: (st === 'UPDATE_V2' && exSite) ? JSON.parse(JSON.stringify(exSite.answers)) : JSON.parse(JSON.stringify(ans)),
                 v2_data: (st === 'UPDATE_V2') ? JSON.parse(JSON.stringify(ans)) : (exSite ? JSON.parse(JSON.stringify(exSite.v2_data)) : null),
+                current_mpsa: exSite ? exSite.current_mpsa : null,
                 code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (exSite?.code || 'MB-' + Math.floor(Math.random() * 9000 + 1000)) : (exSite ? exSite.code : '')
             };
             if (await SiteService.save(site)) {
