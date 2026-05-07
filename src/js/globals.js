@@ -5,9 +5,6 @@ import { store } from './store.js';
 
 window.STATUS_LABELS = STATUS_LABELS;
 
-
-window.STATUS_LABELS = STATUS_LABELS;
-
         // --- LIGHTBOX LOGIC ---
         window.currentLightboxIndex = 0;
         window.currentLightboxImages = [];
@@ -354,17 +351,19 @@ window.STATUS_LABELS = STATUS_LABELS;
             window.printSelected();
         };
 
-        window.login = (role, loc, brand) => {
+        window.login = (role, region, brand = 'ALL') => {
             const user = {
-                id: (role.toLowerCase() + '-' + loc + (brand ? '-' + brand : '')).toLowerCase(),
+                id: (role.toLowerCase() + '-' + region.toLowerCase() + (brand && brand !== 'ALL' ? '-' + brand.toLowerCase() : '')).toLowerCase(),
                 name: role === 'ADMIN' ? 'Chị Nhi' :
-                    (role === 'MB' ? ('MB ' + loc) :
+                    (role === 'MB' ? ('MB ' + region) :
                         (role === 'BOD_L1' ? 'BOD' :
                             (role === 'BOD_L2' ? brand :
                                 'Project'))),
-                role, region: loc, brand
+                role, region, brand
             };
-            localStorage.setItem('site_poc_user', JSON.stringify(user)); location.href = '#dashboard'; location.reload();
+            localStorage.setItem('site_poc_user', JSON.stringify(user)); 
+            location.href = '#dashboard'; 
+            location.reload();
         };
 
         window.doLogin = async () => {

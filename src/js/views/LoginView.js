@@ -2,32 +2,6 @@ import { store } from '../store.js';
 
 export const LoginView = {
     render: async () => {
-        window.login = (role, region, brand = 'ALL') => {
-            const users = {
-                'ADMIN': { id: 'admin', name: 'Chị Nhi (Admin)', role: 'ADMIN', region: 'ALL', brand: 'ALL' },
-                'MB': { 
-                    'NORTH': { id: 'mb_north', name: 'Team MB Bắc', role: 'MB', region: 'NORTH', brand: 'ALL' },
-                    'SOUTH': { id: 'mb_south', name: 'Team MB Nam', role: 'MB', region: 'SOUTH', brand: 'ALL' }
-                },
-                'BOD_L1': { id: 'bod1', name: 'BOD Level 1', role: 'BOD_L1', region: 'ALL', brand: 'ALL' },
-                'BOD_L2': { id: 'bod2_' + brand.toLowerCase(), name: 'BOD ' + brand, role: 'BOD_L2', region: 'ALL', brand: brand },
-                'PROJECT': { id: 'project', name: 'Team Project', role: 'PROJECT', region: 'ALL', brand: 'ALL' }
-            };
-            
-            let u;
-            if (role === 'MB') u = users.MB[region];
-            else if (role === 'BOD_L2') u = users.BOD_L2;
-            else u = users[role];
-
-            localStorage.setItem('site_poc_user', JSON.stringify(u));
-            store.setState({ user: u });
-            window.location.hash = '#dashboard';
-            window.location.reload();
-        };
-
-        window.doLogin = () => {
-            alert('Vui lòng sử dụng tính năng Đăng nhập nhanh bên dưới cho bản Demo POC.');
-        };
 
         return `
         <div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#F1F5F9; overflow:auto;">
