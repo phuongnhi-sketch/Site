@@ -6,6 +6,17 @@ import { store } from '../store.js';
 
 export const DashboardView = {
     render: async () => {
+        window.exportExcel = async (selectedIds = []) => {
+            const u = store.getState().user;
+            if (selectedIds.length === 0) {
+                selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+            }
+            let sites = (await SiteService.getSites());
+            if (selectedIds.length > 0) {
+                sites = sites.filter(s => selectedIds.includes(s.id));
+            }
+        };
+
         const u = store.getState().user;
         // Áp dụng bộ lọc phân quyền cho Dashboard
         const ss = (await SiteService.getSites()).filter(s => {
@@ -48,7 +59,7 @@ export const DashboardView = {
                 </div>` : ''}
                 <div class="glass" style="padding:3.5rem; border-radius:30px; background:var(--grad-primary); color:white; margin-bottom:2.5rem; box-shadow:0 15px 40px rgba(37,99,235,0.15)">
                     <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào ${u.name}! 👋</h1>
-                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.1.6 đang hoạt động ổn định và tối ưu.</p>
+                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.1.7 đang hoạt động ổn định và tối ưu.</p>
                 </div>
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem">
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-blue)">

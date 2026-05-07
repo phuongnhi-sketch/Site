@@ -173,9 +173,9 @@ export const SiteListView = {
                                         <td><span style="font-size:0.75rem; font-weight:800; color:#555">${s.region}</span></td>
                                         <td>
                                             <div style="display:flex; gap:6px">
-                                                ${(s.status === 'DRAFT' || u.role === 'ADMIN') ? `<button onclick="location.hash='#create?id=${s.id}'" class="btn-primary" style="padding:6px 12px; border-radius:10px; font-size:0.8rem; height:fit-content;">Sửa</button>` : ''}
                                                 <button class="btn-ghost" style="padding:6px 12px; font-size:0.8rem; height:fit-content;" onclick="location.hash='#detail?id=${s.id}'">Xem</button>
                                                 ${u.role === 'ADMIN' ? `<button class="btn-ghost" style="padding:6px 12px; font-size:0.8rem; height:fit-content; background:#FEE2E2; color:#B91C1C; border:none;" onclick="window.delSite('${s.id}')">Xóa</button>` : ''}
+                                                ${(s.status === 'DRAFT' || u.role === 'ADMIN') ? `<button onclick="location.hash='#create?id=${s.id}'" class="btn-primary" style="padding:6px 12px; border-radius:10px; font-size:0.8rem; height:fit-content;">Sửa</button>` : ''}
                                             </div>
                                         </td>
                                     </tr>`;

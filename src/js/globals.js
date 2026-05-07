@@ -226,11 +226,13 @@ window.STATUS_LABELS = STATUS_LABELS;
         window.editV2 = (id) => { window.currentId = id; window.editingV2 = true; location.hash = '#create?id=' + id; };
         window.tf = (id, a) => { FormService.updateField(id, { is_active: a }); if (window.router) window.router.handleRoute(); };
 
-        window.exportCSV = async () => {
+        window.exportExcel = async (selectedIds = []) => {
             const u = store.getState().user;
-            const selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+            if (!selectedIds || selectedIds.length === 0) {
+                selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+            }
             let sites = (await SiteService.getSites());
-            if (selectedIds.length > 0) {
+            if (selectedIds && selectedIds.length > 0) {
                 sites = sites.filter(s => selectedIds.includes(s.id));
             }
             const fields = (await FormService.getFields());
