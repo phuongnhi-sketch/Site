@@ -12,7 +12,11 @@ export const SiteListView = {
         // Fetch and filter sites
         let sites = await SiteService.getSites();
         sites = sites.filter(s => {
-            if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
+            if (s.status === 'DRAFT') {
+                if (u.role === 'ADMIN') return true;
+                if (u.role === 'MB') return (s.owner === u.id || s.owner_id === u.id || (s.region === u.region && (!s.owner_id && !s.owner)));
+                return false;
+            }
             if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
             if (u.role === 'BOD_L2') {
                 if (s.status === 'FINISH' || s.status === 'REJECTED') return true;

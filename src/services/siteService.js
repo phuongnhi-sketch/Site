@@ -66,7 +66,7 @@ export const SiteService = {
         const dbSite = {
             id: site.id, code: site.code || null, name: site.name, brand: site.brand || null,
             addr: site.addr || null, region: site.region || 'SOUTH', status: site.status || 'DRAFT',
-            owner_id: site.owner_id || null, owner_name: site.owner_name || null,
+            owner_id: site.owner_id || site.owner || null, owner_name: site.owner_name || null,
             thumb_url: site.thumb || site.thumb_url || null, answers: site.answers || {},
             v2_data: site.v2_data || null, current_mpsa: site.current_mpsa || null,
             price: site.price || null, date: site.date || new Date().toLocaleDateString('vi-VN'),

@@ -136,7 +136,8 @@ window.STATUS_LABELS = STATUS_LABELS;
 
             const site = {
                 id: window.currentId || Date.now().toString(),
-                owner: exSite ? exSite.owner : u.id,
+                owner_id: exSite ? (exSite.owner_id || exSite.owner) : u.id,
+                owner: exSite ? (exSite.owner_id || exSite.owner) : u.id,
                 owner_name: exSite ? exSite.owner_name : u.name,
                 region: exSite ? exSite.region : (u.role === 'ADMIN' ? (document.getElementById('admin-region')?.value || 'ALL') : u.region),
                 date: exSite ? exSite.date : new Date().toLocaleDateString(),
