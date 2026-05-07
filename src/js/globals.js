@@ -290,6 +290,9 @@ window.STATUS_LABELS = STATUS_LABELS;
         };
 
         window.printSelected = async () => {
+            const win = window.open('about:blank', '_blank');
+            if (!win) return alert('LỖI: Trình duyệt đã chặn cửa sổ bật lên (Popup). Vui lòng nhìn lên thanh địa chỉ trình duyệt, chọn "Luôn cho phép cửa sổ bật lên" rồi bấm In lại nhé!');
+            
             const u = store.getState().user;
             let selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
             if (selectedIds.length === 0) {
@@ -299,9 +302,6 @@ window.STATUS_LABELS = STATUS_LABELS;
             const allSites = await SiteService.getSites();
             const fields = await FormService.getFields();
             const incQA = window.siteFilters?.includeQA;
-
-            const win = window.open('about:blank', '_blank');
-            if (!win) return alert('LỖI: Trình duyệt đã chặn cửa sổ bật lên (Popup). Vui lòng nhìn lên thanh địa chỉ trình duyệt, chọn "Luôn cho phép cửa sổ bật lên" rồi bấm In lại nhé!');
 
             let html = '<html><head><title>Báo cáo hồ sơ</title>';
             html += '<style>@page { size: auto; margin: 15mm; } body{font-family:sans-serif; margin:0; padding:20px;} .page-break{page-break-after:always; border-bottom:1px solid #eee; margin-bottom:30px; padding-bottom:30px;} .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px} .field label{font-weight:bold;font-size:10px;color:#666;display:block;text-transform:uppercase} .field p{margin:2px 0;font-size:12px;color:#111} .thumb-img{width:100%; max-width:400px; border-radius:8px; margin-bottom:15px; border:1px solid #ddd} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;margin-top:10px} .images-grid img{height:80px;width:100%;object-fit:cover;border-radius:4px;border:1px solid #eee} .tag{background:#2563EB;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:bold} h2{color:#2563EB; font-size:1.1rem; margin:15px 0 10px 0; border-bottom:2px solid #2563EB; padding-bottom:5px} h3{font-size:0.9rem; margin-top:15px; color:#444}</style>';
