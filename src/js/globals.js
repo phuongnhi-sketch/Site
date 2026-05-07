@@ -297,30 +297,31 @@ window.STATUS_LABELS = STATUS_LABELS;
             }
 
             const incQA = window.siteFilters?.includeQA;
-            const verOpt = window.siteFilters?.exportVer || 'BOTH';
+            const allSites = await SiteService.getSites();
+            const fields = await FormService.getFields();
 
-            const win = window.open('', '', 'height=800,width=1000');
+            const win = window.open('', '_blank');
+            if (!win) return alert('Trình duyệt đã chặn cửa sổ bật lên (popup). Vui lòng cho phép hiện popup để in báo cáo!');
+
             win.document.write('<html><head><title>Báo cáo chọn lọc</title>');
             win.document.write('<style>@page { size: auto; margin: 20mm 15mm; } body{font-family:sans-serif;padding:0} .page-break{page-break-after:always; border-bottom:2px dashed #eee; padding-bottom:40px; margin-bottom:40px} .header{display:flex;justify-content:space-between;margin-bottom:20px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .field label{font-weight:bold;font-size:11px;color:#666;display:block} .field p{margin:3px 0;font-size:13px} .thumb-img{width:350px;border-radius:10px;margin-bottom:15px} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px} .images-grid img{height:100px;width:100%;object-fit:cover;border-radius:8px} .version-tag{background:#2563EB;color:white;padding:4px 10px;border-radius:4px;font-size:11px} h2{color:#2563EB; font-size:1.2rem; margin-top:20px; border-left:4px solid #2563EB; padding-left:10px}</style>');
             win.document.write('</head><body>');
 
-            for (let index = 0; index < selectedIds.length; index++) { const id = selectedIds[index];
-                const site = (await SiteService.getSites()).find(s => s.id === id);
-                if (!site) return;
+            for (let index = 0; index < selectedIds.length; index++) {
+                const id = selectedIds[index];
+                const site = allSites.find(s => s.id === id);
+                if (!site) continue;
 
                 win.document.write(`<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`);
                 win.document.write(`<div class="header"><h1>#${index + 1}. ${site.name}</h1><div class="version-tag">Mã: ${site.code}</div></div>`);
                 win.document.write(`<img src="${site.thumb}" class="thumb-img">`);
 
-                const renderSection = async (data, title) => {
+                const renderSection = (data, title) => {
                     const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
                     win.document.write(`<h2>${title}</h2><div class="grid">`);
-                    const fields = await FormService.getFields();
                     fields.forEach(f => {
                         let v = data[f.id] || '';
-                        if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) {
-                            v = '*******';
-                        }
+                        if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) v = '*******';
                         let displayVal = v || '---';
                         if (f.num && v && v !== '*******') {
                             const num = parseFloat(v.toString().replace(/,/g, ''));
@@ -333,12 +334,12 @@ window.STATUS_LABELS = STATUS_LABELS;
 
                 const verOpt = window.siteFilters?.exportVer || 'BOTH';
                 if (verOpt === 'BOTH') {
-                    await renderSection(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
-                    if (site.v2_data) await renderSection(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
+                    renderSection(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
+                    if (site.v2_data) renderSection(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
                 } else {
                     const data = site.v2_data || site.answers || {};
                     const title = site.v2_data ? 'PHIÊN BẢN CHỐT DEAL (V2)' : 'PHIÊN BẢN GỐC (V1)';
-                    await renderSection(data, title);
+                    renderSection(data, title);
                 }
 
                 if (site.inner_images && site.inner_images.length > 0) {
@@ -357,7 +358,7 @@ window.STATUS_LABELS = STATUS_LABELS;
             }
             win.document.write('</body></html>');
             win.document.close();
-            win.print();
+            win.setTimeout(() => { win.print(); }, 500);
         };
 
         window.printDetail = (id) => {
@@ -396,5 +397,3 @@ window.STATUS_LABELS = STATUS_LABELS;
                 alert('Sai tài khoản hoặc mật khẩu!');
             }
         };
-
-        
