@@ -16,7 +16,7 @@ export const UserService = {
             // Trả về mock users để web không bị trắng trang, nhưng cảnh báo
             return [
                 { id: 'admin', name: 'Admin (Mock)', username: 'admin', password: '123', role: 'ADMIN', region: 'ALL', brand: 'ALL' },
-                { id: 'nhi', name: 'Chị Nhi (Mock)', username: 'nhi', password: '123', role: 'BOD_L1', region: 'ALL', brand: 'ALL' }
+                { id: 'nhi', name: 'Chị Nhi (Mock)', username: 'nhi', password: '123', role: 'ADMIN', region: 'ALL', brand: 'ALL' }
             ];
         }
         console.log('Users fetched successfully:', data);

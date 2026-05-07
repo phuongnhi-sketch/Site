@@ -5,34 +5,34 @@ import { NotificationService } from '../../services/notificationService.js';
 import { store } from '../store.js';
 
 export const DashboardView = {
-            render: async () => {
-                const u = store.getState().user;
-                // Áp dụng bộ lọc phân quyền cho Dashboard
-                const ss = (await SiteService.getSites()).filter(s => {
-                    if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
-                    if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
-                    if (u.role === 'BOD_L2') {
-                        if (s.status === 'FINISH' || s.status === 'REJECTED') return true;
-                        const sBrand = s.brand || s.answers?.f0 || '';
-                        if (['DQ', 'SW'].includes(u.brand)) return sBrand.includes('DQ') || sBrand.includes('SW');
-                        return sBrand.includes(u.brand);
-                    }
-                    if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH', 'REJECTED'].includes(s.status);
-                    return u.role === 'MB' ? s.region === u.region : false;
-                });
+    render: async () => {
+        const u = store.getState().user;
+        // Áp dụng bộ lọc phân quyền cho Dashboard
+        const ss = (await SiteService.getSites()).filter(s => {
+            if (s.status === 'DRAFT') return s.owner === u.id || u.role === 'ADMIN';
+            if (u.role === 'ADMIN' || u.role === 'BOD_L1') return true;
+            if (u.role === 'BOD_L2') {
+                if (s.status === 'FINISH' || s.status === 'REJECTED') return true;
+                const sBrand = s.brand || s.answers?.f0 || '';
+                if (['DQ', 'SW'].includes(u.brand)) return sBrand.includes('DQ') || sBrand.includes('SW');
+                return sBrand.includes(u.brand);
+            }
+            if (u.role === 'PROJECT') return ['GATE1', 'GATE2', 'GATE3', 'FINISH', 'REJECTED'].includes(s.status);
+            return u.role === 'MB' ? s.region === u.region : false;
+        });
 
-                const mySites = ss.filter(s => s.owner === u.id);
-                const submitted = ss.filter(s => s.status === 'SUBMITTED').length;
-                const gate1 = ss.filter(s => s.status === 'GATE1').length;
-                const gate2 = ss.filter(s => s.status === 'GATE2').length;
-                const gate3 = ss.filter(s => s.status === 'GATE3').length;
-                const finished = ss.filter(s => s.status === 'FINISH').length;
-                const rejected = ss.filter(s => s.status === 'REJECTED').length;
-                const draft = ss.filter(s => s.status === 'DRAFT').length;
+        const mySites = ss.filter(s => s.owner === u.id);
+        const submitted = ss.filter(s => s.status === 'SUBMITTED').length;
+        const gate1 = ss.filter(s => s.status === 'GATE1').length;
+        const gate2 = ss.filter(s => s.status === 'GATE2').length;
+        const gate3 = ss.filter(s => s.status === 'GATE3').length;
+        const finished = ss.filter(s => s.status === 'FINISH').length;
+        const rejected = ss.filter(s => s.status === 'REJECTED').length;
+        const draft = ss.filter(s => s.status === 'DRAFT').length;
 
-                const feedbackCount = mySites.filter(s => (s.status === 'DRAFT' || s.status === 'GATE1') && s.comments && s.comments.length > 0).length;
+        const feedbackCount = mySites.filter(s => (s.status === 'DRAFT' || s.status === 'GATE1') && s.comments && s.comments.length > 0).length;
 
-                return `
+        return `
             <div class="animate-fade-in">
                 ${(u.role === 'MB' && feedbackCount > 0) ? `
                 <div style="background:#FEF2F2; border-left:4px solid #EF4444; padding:1.5rem; border-radius:12px; margin-bottom:2rem; box-shadow:var(--shadow-soft); display:flex; align-items:center; gap:1rem;">
@@ -44,7 +44,7 @@ export const DashboardView = {
                 </div>` : ''}
                 <div class="glass" style="padding:3.5rem; border-radius:30px; background:var(--grad-primary); color:white; margin-bottom:2.5rem; box-shadow:0 15px 40px rgba(37,99,235,0.15)">
                     <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào ${u.name}! 👋</h1>
-                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v2.5 đang hoạt động ổn định và tối ưu.</p>
+                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.0.9 đang hoạt động ổn định và tối ưu.</p>
                 </div>
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem">
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-blue)">
@@ -77,5 +77,5 @@ export const DashboardView = {
                     </div>
                 </div>
             </div>`;
-            }
-        }
+    }
+};

@@ -30,7 +30,6 @@ export const Sidebar = {
                 <div class="sidebar-menu">
                     ${menuHtml}
                 </div>
-                <div style="margin-top:auto; padding:20px; font-size:0.7rem; color:#999; text-align:center">Version 3.0.9</div>
                 <button id="logout-sidebar-btn" style="color:red; border:none; background:none; cursor:pointer; padding:20px; font-weight:700">Đăng xuất</button>
             </aside>
         `;
