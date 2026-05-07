@@ -8,7 +8,7 @@ export const STATUS_LABELS = {
     'REJECTED': 'Rejected'
 };
 
-import { supabase } from '../js/supabase.js';
+import { supabase } from './supabaseClient.js';
 import { NotificationService } from './notificationService.js';
 
 export const SiteService = {
