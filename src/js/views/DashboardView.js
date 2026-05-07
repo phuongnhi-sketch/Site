@@ -13,29 +13,28 @@ export const DashboardView = {
                 selectedIds = (await SiteService.getSites()).map(s => s.id);
             }
 
-            const incQA = window.siteFilters?.includeQA;
             const allSites = await SiteService.getSites();
             const fields = await FormService.getFields();
+            const incQA = window.siteFilters?.includeQA;
 
-            const win = window.open('', '_blank');
-            if (!win) return alert('Trình duyệt đã chặn cửa sổ bật lên (popup). Vui lòng cho phép hiện popup để in báo cáo!');
+            const win = window.open('about:blank', '_blank');
+            if (!win) return alert('LỖI: Trình duyệt đã chặn cửa sổ bật lên (Popup). Vui lòng nhìn lên thanh địa chỉ trình duyệt, chọn "Luôn cho phép cửa sổ bật lên" rồi bấm In lại nhé!');
 
-            win.document.write('<html><head><title>Báo cáo chọn lọc</title>');
-            win.document.write('<style>@page { size: auto; margin: 20mm 15mm; } body{font-family:sans-serif;padding:0} .page-break{page-break-after:always; border-bottom:2px dashed #eee; padding-bottom:40px; margin-bottom:40px} .header{display:flex;justify-content:space-between;margin-bottom:20px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .field label{font-weight:bold;font-size:11px;color:#666;display:block} .field p{margin:3px 0;font-size:13px} .thumb-img{width:350px;border-radius:10px;margin-bottom:15px} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px} .images-grid img{height:100px;width:100%;object-fit:cover;border-radius:8px} .version-tag{background:#2563EB;color:white;padding:4px 10px;border-radius:4px;font-size:11px} h2{color:#2563EB; font-size:1.2rem; margin-top:20px; border-left:4px solid #2563EB; padding-left:10px}</style>');
-            win.document.write('</head><body>');
+            let html = '<html><head><title>Báo cáo hồ sơ</title>';
+            html += '<style>@page { size: auto; margin: 15mm; } body{font-family:sans-serif; margin:0; padding:20px;} .page-break{page-break-after:always; border-bottom:1px solid #eee; margin-bottom:30px; padding-bottom:30px;} .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px} .field label{font-weight:bold;font-size:10px;color:#666;display:block;text-transform:uppercase} .field p{margin:2px 0;font-size:12px;color:#111} .thumb-img{width:100%; max-width:400px; border-radius:8px; margin-bottom:15px; border:1px solid #ddd} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;margin-top:10px} .images-grid img{height:80px;width:100%;object-fit:cover;border-radius:4px;border:1px solid #eee} .tag{background:#2563EB;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:bold} h2{color:#2563EB; font-size:1.1rem; margin:15px 0 10px 0; border-bottom:2px solid #2563EB; padding-bottom:5px} h3{font-size:0.9rem; margin-top:15px; color:#444}</style>';
+            html += '</head><body>';
 
-            for (let index = 0; index < selectedIds.length; index++) {
-                const id = selectedIds[index];
+            selectedIds.forEach((id, index) => {
                 const site = allSites.find(s => s.id === id);
-                if (!site) continue;
+                if (!site) return;
 
-                win.document.write(`<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`);
-                win.document.write(`<div class="header"><h1>#${index + 1}. ${site.name}</h1><div class="version-tag">Mã: ${site.code}</div></div>`);
-                win.document.write(`<img src="${site.thumb}" class="thumb-img">`);
+                html += `<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`;
+                html += `<div class="header"><h2>#${index + 1}. ${site.name}</h2><span class="tag">${site.code}</span></div>`;
+                html += `<img src="${site.thumb}" class="thumb-img">`;
 
-                const renderSection = (data, title) => {
+                const renderData = (data, sectionTitle) => {
                     const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
-                    win.document.write(`<h2>${title}</h2><div class="grid">`);
+                    html += `<h3>${sectionTitle}</h3><div class="grid">`;
                     fields.forEach(f => {
                         let v = data[f.id] || '';
                         if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) v = '*******';
@@ -44,38 +43,43 @@ export const DashboardView = {
                             const num = parseFloat(v.toString().replace(/,/g, ''));
                             if (!isNaN(num)) displayVal = num.toLocaleString('en-US');
                         }
-                        win.document.write(`<div class="field"><label>${f.label}</label><p>${displayVal}</p></div>`);
+                        html += `<div class="field"><label>${f.label}</label><p>${displayVal}</p></div>`;
                     });
-                    win.document.write('</div>');
+                    html += '</div>';
                 };
 
                 const verOpt = window.siteFilters?.exportVer || 'BOTH';
                 if (verOpt === 'BOTH') {
-                    renderSection(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
-                    if (site.v2_data) renderSection(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
+                    renderData(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
+                    if (site.v2_data) renderData(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
                 } else {
                     const data = site.v2_data || site.answers || {};
-                    const title = site.v2_data ? 'PHIÊN BẢN CHỐT DEAL (V2)' : 'PHIÊN BẢN GỐC (V1)';
-                    renderSection(data, title);
+                    renderData(data, site.v2_data ? 'PHIÊN BẢN CHỐT DEAL (V2)' : 'PHIÊN BẢN GỐC (V1)');
                 }
 
                 if (site.inner_images && site.inner_images.length > 0) {
-                    win.document.write('<h3>Hình ảnh chi tiết</h3><div class="images-grid">');
-                    site.inner_images.forEach(img => win.document.write(`<img src="${img}">`));
-                    win.document.write('</div>');
+                    html += '<h3>Hình ảnh chi tiết</h3><div class="images-grid">';
+                    site.inner_images.forEach(img => html += `<img src="${img}">`);
+                    html += '</div>';
                 }
 
                 if (incQA && site.comments && site.comments.length > 0) {
-                    win.document.write('<h3>Lịch sử thảo luận</h3>');
+                    html += '<h3>Lịch sử thảo luận</h3>';
                     site.comments.forEach(c => {
-                        win.document.write(`<div style="margin-bottom:8px;padding:8px;background:#f5f5f5;border-radius:6px;font-size:12px"><strong>${c.author}</strong>: ${c.text}</div>`);
+                        html += `<div style="margin-bottom:5px;padding:6px;background:#f9f9f9;border-radius:4px;font-size:11px"><strong>${c.author}</strong>: ${c.text}</div>`;
                     });
                 }
-                win.document.write('</div>');
-            }
-            win.document.write('</body></html>');
+                html += '</div>';
+            });
+
+            html += '</body></html>';
+            win.document.open();
+            win.document.write(html);
             win.document.close();
-            win.setTimeout(() => { win.print(); }, 500);
+            
+            win.onload = () => {
+                setTimeout(() => { win.print(); }, 500);
+            };
         };
 
         const u = store.getState().user;
@@ -120,7 +124,7 @@ export const DashboardView = {
                 </div>` : ''}
                 <div class="glass" style="padding:3.5rem; border-radius:30px; background:var(--grad-primary); color:white; margin-bottom:2.5rem; box-shadow:0 15px 40px rgba(37,99,235,0.15)">
                     <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào ${u.name}! 👋</h1>
-                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.1.8 đang hoạt động ổn định và tối ưu.</p>
+                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.1.9 đang hoạt động ổn định và tối ưu.</p>
                 </div>
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem">
                     <div class="glass" style="padding:2.2rem; border-radius:24px; border-bottom:6px solid var(--accent-blue)">

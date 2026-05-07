@@ -104,6 +104,8 @@ export const SiteService = {
             await NotificationService.add(site.owner_id, `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
         }
         await NotificationService.add('admin-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
+        await NotificationService.add('bod_l1-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
+        await NotificationService.add('project-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
     },
 
     async updateMPSA(siteId, value, note) {
