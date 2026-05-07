@@ -17,7 +17,14 @@ export const SiteService = {
             console.error('Error fetching sites:', error);
             return [];
         }
-        return (data || []).map(s => ({ ...s, comments: s.comments || [], mpsa_history: s.mpsa_entries || [], owner: s.owner_id, inner_images: s.inner_images || [] }));
+        return (data || []).map(s => ({ 
+            ...s, 
+            thumb: s.thumb_url,
+            comments: s.comments || [], 
+            mpsa_history: s.mpsa_entries || [], 
+            owner: s.owner_id, 
+            inner_images: s.inner_images || [] 
+        }));
     },
 
     async getSiteById(id) {
@@ -26,7 +33,14 @@ export const SiteService = {
             .select('*, comments:site_comments(*), mpsa_entries:mpsa_history(*)')
             .eq('id', id).single();
         if (error) { console.error('Error:', error); return null; }
-        return { ...data, comments: data.comments || [], mpsa_history: data.mpsa_entries || [], owner: data.owner_id, inner_images: data.inner_images || [] };
+        return { 
+            ...data, 
+            thumb: data.thumb_url,
+            comments: data.comments || [], 
+            mpsa_history: data.mpsa_entries || [], 
+            owner: data.owner_id, 
+            inner_images: data.inner_images || [] 
+        };
     },
 
     async save(site) {
