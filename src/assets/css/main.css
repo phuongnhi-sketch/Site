@@ -117,6 +117,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     border: 1px solid rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
 }
 
 .status-DRAFT { background: #F1F5F9; color: #64748B; }

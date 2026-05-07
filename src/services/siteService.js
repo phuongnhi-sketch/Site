@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
 
 const STATUS_LABELS = {
-    'DRAFT': 'Bản nháp', 'SUBMITTED': 'Submitted', 'GATE1': 'Survey',
+    'DRAFT': 'Draft', 'SUBMITTED': 'Submitted', 'GATE1': 'Survey',
     'GATE2': 'Sitepack', 'GATE3': 'Deal', 'FINISH': 'Complete', 'REJECTED': 'Rejected',
 };
 
