@@ -1,6 +1,7 @@
 import { SiteService, STATUS_LABELS } from '../services/siteService.js';
 import { FormService } from '../services/formService.js';
 import { NotificationService } from '../services/notificationService.js';
+import { UserService } from '../services/userService.js';
 import { store } from './store.js';
 
 window.STATUS_LABELS = STATUS_LABELS;
