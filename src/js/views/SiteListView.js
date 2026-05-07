@@ -111,7 +111,7 @@ export const SiteListView = {
                     <button onclick="window.siteFilters={search:'',region:'ALL',brand:'ALL',status:'ALL',includeQA:false,exportVer:'BOTH'}; if(window.router) window.router.handleRoute();" class="btn-ghost" style="padding:10px; font-size:0.8rem">Làm mới 🔄</button>
                 </div>
 
-                <div class="glass" style="padding:0; border-radius:24px; overflow:hidden">
+                <div class="glass" style="padding:0; border-radius:24px; overflow-x:auto">
                     <table class="data-table">
                         <thead>
                             <tr>

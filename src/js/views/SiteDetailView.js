@@ -81,6 +81,13 @@ export const DetailView = {
                             </div>
                         ` : ''}
 
+                        ${(u.role === 'MB' && site.status === 'DRAFT' && site.owner === u.id) ? `
+                            <div style="margin-top:2rem; padding:1.5rem; background:#DCFCE7; border-radius:14px; border:1px solid #BBF7D0; display:flex; justify-content:space-between; align-items:center">
+                                <div>✅ <strong>Hồ sơ đã được mở khóa.</strong> Bạn có thể chỉnh sửa ngay bây giờ.</div>
+                                <button class="btn-primary" style="padding:0.8rem 1.5rem; border-radius:12px;" onclick="location.hash='#create?id=${site.id}'">✍️ Chỉnh sửa ngay</button>
+                            </div>
+                        ` : ''}
+
                         ${(u.role === 'ADMIN') ? `
                             <div style="margin-top:2rem; padding:1.5rem; background:#EFF6FF; border-radius:14px; border:1px solid #DBEAFE; display:flex; justify-content:space-between; align-items:center">
                                 <div>🛡️ <strong>Admin Control:</strong> Trao quyền sửa cho MB hoặc tự chỉnh sửa?</div>
