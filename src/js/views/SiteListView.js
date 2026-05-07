@@ -1,7 +1,7 @@
 import { SiteService, STATUS_LABELS } from '../../services/siteService.js';
 import { store } from '../store.js';
 
-export const ListView = {
+export const SiteListView = {
     render: async () => {
         const u = store.getState().user;
         const sites = await SiteService.getSites();
