@@ -1,6 +1,6 @@
 {
   "name": "site-management",
-  "version": "3.0.8",
+  "version": "3.0.9",
   "description": "Site Management - Hệ thống quản lý mặt bằng",
   "type": "module",
   "scripts": {
