@@ -1,5 +1,16 @@
 import { SiteService } from '../../services/siteService.js';
+import { FormService } from '../../services/formService.js';
 import { store } from '../store.js';
+
+export const STATUS_LABELS = {
+    'DRAFT': 'Draft',
+    'SUBMITTED': 'Submitted',
+    'GATE1': 'Survey',
+    'GATE2': 'Sitepack',
+    'GATE3': 'Deal',
+    'FINISH': 'Complete',
+    'REJECTED': 'Rejected'
+};
 
 export const DashboardView = {
     render: async () => {
@@ -20,15 +31,6 @@ export const DashboardView = {
             return false;
         });
 
-        const stats = {
-            total: ss.length,
-            draft: ss.filter(s => s.status === 'DRAFT').length,
-            submitted: ss.filter(s => s.status === 'SUBMITTED').length,
-            survey: ss.filter(s => s.status === 'GATE1').length,
-            sitepack: ss.filter(s => s.status === 'GATE2').length,
-            deal: ss.filter(s => s.status === 'GATE3').length,
-            finish: ss.filter(s => s.status === 'FINISH').length
-        };
 
         return `
             <div class="animate-fade-in">
@@ -39,45 +41,33 @@ export const DashboardView = {
                 </div>` : ''}
                 <div class="glass" style="padding:3.5rem; border-radius:30px; background:var(--grad-primary); color:white; margin-bottom:2.5rem; box-shadow:0 15px 40px rgba(37,99,235,0.15)">
                     <h1 style="font-size:2.8rem; margin-bottom:0.5rem; font-family:var(--font-heading)">Xin chào ${u.name}! 👋</h1>
-                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.2.0 đang hoạt động ổn định và tối ưu.</p>
+                    <p style="opacity:0.9; font-weight:500; font-size:1.1rem">Hệ thống Master POC v3.2.1 đang hoạt động ổn định và tối ưu.</p>
                 </div>
                 
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem">
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:4px solid #94A3B8">
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Bản nháp (Draft)</div>
-                        <div style="font-size:2.2rem; font-weight:900; color:#64748B">${stats.draft}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Draft</div>
+                        <div style="font-size:2.2rem; font-weight:900; color:#64748B">${ss.filter(s => s.status === 'DRAFT').length}</div>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:4px solid #6366F1">
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Hồ sơ nộp mới</div>
-                        <div style="font-size:2.2rem; font-weight:900; color:#6366F1">${stats.submitted}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Submitted</div>
+                        <div style="font-size:2.2rem; font-weight:900; color:#6366F1">${ss.filter(s => s.status === 'SUBMITTED').length}</div>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:4px solid #F59E0B">
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Đang khảo sát</div>
-                        <div style="font-size:2.2rem; font-weight:900; color:#F59E0B">${stats.survey}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Survey</div>
+                        <div style="font-size:2.2rem; font-weight:900; color:#F59E0B">${ss.filter(s => s.status === 'GATE1').length}</div>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:4px solid #8B5CF6">
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Lên Sitepack</div>
-                        <div style="font-size:2.2rem; font-weight:900; color:#8B5CF6">${stats.sitepack}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Sitepack</div>
+                        <div style="font-size:2.2rem; font-weight:900; color:#8B5CF6">${ss.filter(s => s.status === 'GATE2').length}</div>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:4px solid #3B82F6">
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Đang chốt Deal</div>
-                        <div style="font-size:2.2rem; font-weight:900; color:#3B82F6">${stats.deal}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Deal</div>
+                        <div style="font-size:2.2rem; font-weight:900; color:#3B82F6">${ss.filter(s => s.status === 'GATE3').length}</div>
                     </div>
                     <div class="glass" style="padding:1.5rem; border-radius:20px; border-bottom:4px solid #10B981">
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Hoàn tất / Thuê</div>
-                        <div style="font-size:2.2rem; font-weight:900; color:#10B981">${stats.finish}</div>
-                    </div>
-                </div>
-
-                <div class="glass" style="margin-top:2.5rem; padding:2.5rem; border-radius:28px">
-                    <h3 style="margin-bottom:1.5rem; font-family:var(--font-heading)">📊 Phân bổ hồ sơ theo trạng thái</h3>
-                    <div style="display:flex; height:50px; border-radius:15px; overflow:hidden; box-shadow:inset 0 2px 10px rgba(0,0,0,0.05)">
-                        <div style="width:${(stats.draft / stats.total) * 100}%; background:#94A3B8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700">Draft</div>
-                        <div style="width:${(stats.submitted / stats.total) * 100}%; background:#6366F1; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700">New</div>
-                        <div style="width:${(stats.survey / stats.total) * 100}%; background:#F59E0B; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700">Survey</div>
-                        <div style="width:${(stats.sitepack / stats.total) * 100}%; background:#8B5CF6; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700">Sitepack</div>
-                        <div style="width:${(stats.deal / stats.total) * 100}%; background:#3B82F6; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700">Deal</div>
-                        <div style="width:${(stats.finish / stats.total) * 100}%; background:#10B981; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700">Done</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.4rem">Complete</div>
+                        <div style="font-size:2.2rem; font-weight:900; color:#10B981">${ss.filter(s => s.status === 'FINISH').length}</div>
                     </div>
                 </div>
             </div>`;

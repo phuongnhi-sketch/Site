@@ -293,6 +293,8 @@ window.STATUS_LABELS = STATUS_LABELS;
             const win = window.open('about:blank', '_blank');
             if (!win) return alert('LỖI: Trình duyệt đã chặn cửa sổ bật lên (Popup). Vui lòng nhìn lên thanh địa chỉ trình duyệt, chọn "Luôn cho phép cửa sổ bật lên" rồi bấm In lại nhé!');
             
+            win.document.write('<html><head><title>Đang chuẩn bị báo cáo...</title><style>body{display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;color:#666;}</style></head><body><div><h2 style="margin-bottom:10px">⌛ Đang nạp dữ liệu báo cáo...</h2><p>Vui lòng đợi trong giây lát.</p></div></body></html>');
+
             const u = store.getState().user;
             let selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
             if (selectedIds.length === 0) {
@@ -356,13 +358,21 @@ window.STATUS_LABELS = STATUS_LABELS;
             });
 
             html += '</body></html>';
+            
+            // Rewrite with actual content
             win.document.open();
             win.document.write(html);
             win.document.close();
             
-            win.onload = () => {
-                setTimeout(() => { win.print(); }, 500);
-            };
+            // Wait for images to be decoded before printing
+            const imgs = win.document.querySelectorAll('img');
+            const promises = Array.from(imgs).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            });
+
+            await Promise.all(promises);
+            setTimeout(() => { win.print(); }, 300);
         };
 
         window.printDetail = (id) => {
