@@ -14,13 +14,10 @@ export const SiteService = {
             .select('*, comments:site_comments(*), mpsa_entries:mpsa_history(*)')
             .order('created_at', { ascending: false });
         if (error) {
-            console.warn('Supabase not ready, using mock sites:', error);
-            return [
-                { id: '1', site_code: 'MB-2024-001', name: 'Mặt bằng Ngã Sáu Ô Chợ Dừa', thumb: 'https://images.unsplash.com/photo-1577495508326-0610ce394464?w=200&h=200&fit=crop', addr: 'Số 1, Ô Chợ Dừa, Đống Đa, Hà Nội', region: 'NORTH', price: 120000000, status: 'SUBMITTED', owner: 'system', answers: {} },
-                { id: '2', site_code: 'MB-2024-002', name: 'Góc ngã tư Nguyễn Huệ', thumb: 'https://images.unsplash.com/photo-1541339905195-266293a20131?w=200&h=200&fit=crop', addr: '99 Nguyễn Huệ, Quận 1, TP. HCM', region: 'SOUTH', price: 250000000, status: 'GATE1', owner: 'system', answers: {} }
-            ];
+            console.error('Error fetching sites:', error);
+            return [];
         }
-        return data.map(s => ({ ...s, comments: s.comments || [], mpsa_history: s.mpsa_entries || [], owner: s.owner_id, inner_images: s.inner_images || [] }));
+        return (data || []).map(s => ({ ...s, comments: s.comments || [], mpsa_history: s.mpsa_entries || [], owner: s.owner_id, inner_images: s.inner_images || [] }));
     },
 
     async getSiteById(id) {

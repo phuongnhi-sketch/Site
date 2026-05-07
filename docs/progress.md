@@ -17,7 +17,8 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 - [x] **Đồng bộ nhãn phân quyền (BOD, Project) & Lời chào cá nhân hóa** (2026-05-04).
 - [x] **Triển khai Lightbox Gallery: Xem ảnh ngay trên trang & chuyển ảnh linh hoạt** (2026-05-05).
 - [x] **Nâng cấp Map Dashboard: SVG Việt Nam tương tác, thống kê NORTH/SOUTH, RBAC theo vùng miền** (2026-05-05).
-- [ ] **Phase 6: Triển khai Supabase + Vercel** — Web thật có database, auth, link truy cập (2026-05-06 →).
+- [x] **Phase 6: Triển khai Supabase + Vercel** — Web thật có database, auth, link truy cập (2026-05-06 →).
+- [x] **Đồng bộ UI/UX Parity (Sidebar, Dashboard, Font size)** — Đạt trạng thái hiển thị 1:1 với demo.html (2026-05-07).
 
 ## 3. Danh sách đã hoàn thành (v2.0)
 - [x] Hệ thống Status mới: Submitted / Survey / Sitepack / Deal / Complete.
@@ -35,9 +36,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 1. **[✅ XONG] Phase 6.1**: Cài Node.js, khởi tạo project, tạo SQL migration.
 2. **[✅ XONG] Phase 6.2**: Viết 7 service modules (Supabase).
 3. **[⏳ CHỜ NHI] Phase 6.1b**: Chạy SQL trên Supabase + tạo Storage bucket.
-4. **[TIẾP THEO] Phase 6.3**: Tách `demo.html` thành project Vite (CSS + Views + Router).
-5. **[ĐANG LÀM] Phase 6.4**: Test local (hiện đang dùng Mock data trong lúc chờ DB).
-6. **Phase 6.5**: Deploy lên Vercel.
+4. **[✅ XONG] Phase 6.3**: Tách `demo.html` thành project Vite (CSS + Views + Router).
+5. **[✅ XONG] Phase 6.4**: Test local & Đồng bộ giao diện (UI/UX Parity).
+6. **[TIẾP THEO] Phase 6.5**: Deploy lên Vercel.
 7. **Phase 6.6**: Kiểm thử & hoàn thiện.
 
 ## 6. Yêu cầu Phase Backend (Future Requirements)

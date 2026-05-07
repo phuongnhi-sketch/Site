@@ -30,13 +30,7 @@ export const Sidebar = {
                 <div class="sidebar-menu">
                     ${menuHtml}
                 </div>
-                <div class="sidebar-footer">
-                    <button id="logout-sidebar-btn" class="menu-item logout-btn" style="border: none; width: 100%; cursor: pointer; background: #FEE2E2; color: #EF4444;">
-                        <span class="icon">🚪</span>
-                        <span class="label">Đăng xuất</span>
-                    </button>
-                    <p class="app-version">Version 1.1.0 (Dynamic Form)</p>
-                </div>
+                <button id="logout-sidebar-btn" style="margin-top:auto; color:red; border:none; background:none; cursor:pointer; padding:20px; font-weight:700">Đăng xuất</button>
             </aside>
         `;
     },
