@@ -20,7 +20,13 @@ export const SiteService = {
         return (data || []).map(s => ({ 
             ...s, 
             thumb: s.thumb_url,
-            comments: s.comments || [], 
+            comments: (s.comments || []).map(c => ({ 
+                id: c.id, 
+                author: c.author_name, 
+                text: c.text, 
+                date: c.created_at, 
+                stage: c.stage 
+            })), 
             mpsa_history: s.mpsa_entries || [], 
             owner: s.owner_id, 
             inner_images: s.inner_images || [] 
@@ -36,7 +42,13 @@ export const SiteService = {
         return { 
             ...data, 
             thumb: data.thumb_url,
-            comments: data.comments || [], 
+            comments: (data.comments || []).map(c => ({ 
+                id: c.id, 
+                author: c.author_name, 
+                text: c.text, 
+                date: c.created_at, 
+                stage: c.stage 
+            })), 
             mpsa_history: data.mpsa_entries || [], 
             owner: data.owner_id, 
             inner_images: data.inner_images || [] 

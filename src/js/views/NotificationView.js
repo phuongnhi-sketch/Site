@@ -4,8 +4,7 @@ import { store } from '../store.js';
 export const NotificationView = {
     render: async () => {
         const u = store.getState().user;
-        const allNotifs = await NotificationService.get();
-        const ns = allNotifs.filter(n => n.uId === u.id || n.uId === u.role + '-all' || n.uId === 'admin-all');
+        const ns = await NotificationService.getNotifs(u.id, u.role);
         // Actually, NotificationService.get(userId) might already filter it, but we filter just in case.
         
         // Define global handlers if they don't exist

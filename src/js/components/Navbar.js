@@ -4,7 +4,7 @@ import { NotificationService } from '../../services/notificationService.js';
 export const Navbar = {
     render: async () => {
         const { user } = store.getState();
-        const unreadCount = await NotificationService.getUnreadCount(user?.id);
+        const unreadCount = await NotificationService.getUnreadCount(user?.id, user?.role);
         
         return `
             <nav class="navbar glass animate-fade-in">

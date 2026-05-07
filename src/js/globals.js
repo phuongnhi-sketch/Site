@@ -197,7 +197,14 @@ window.STATUS_LABELS = STATUS_LABELS;
 
         window.doComment = async (id) => { const text = document.getElementById('msg').value; if (!text) return; await SiteService.addComment(id, text, store.getState().user.name); location.reload(); };
         window.unlock = async (id) => { await SiteService.updateStatus(id, 'DRAFT', 'Admin đã mở khóa bản ghi.'); alert('Đã mở khóa!'); location.reload(); };
-        window.reqEdit = async (id) => { const r = prompt('Lý do sửa:'); if (r) { await SiteService.addComment(id, `YÊU CẦU SỬA: ${r}`, store.getState().user.name); alert('Đã gửi yêu cầu!'); } };
+        window.reqEdit = async (id) => { 
+            const r = prompt('Lý do sửa:'); 
+            if (r) { 
+                const u = store.getState().user;
+                await SiteService.addComment(id, `⚠️ YÊU CẦU SỬA: ${r}`, u.name); 
+                alert('Đã gửi yêu cầu chỉnh sửa đến Admin!'); 
+            } 
+        };
         window.markAllRead = () => {
             const u = store.getState().user;
             const ns = NotificationService.getNotifs();
@@ -205,7 +212,12 @@ window.STATUS_LABELS = STATUS_LABELS;
             localStorage.setItem('site_poc_notifs', JSON.stringify(ns));
             location.reload();
         };
-        window.delSite = (id) => { if (confirm('Bạn có chắc chắn muốn xóa hồ sơ mặt bằng này? Hành động này không thể hoàn tác.')) { let ss = JSON.parse(localStorage.getItem('site_poc_sites')) || []; ss = ss.filter(s => s.id !== id); localStorage.setItem('site_poc_sites', JSON.stringify(ss)); location.reload(); } };
+        window.delSite = async (id) => { 
+            if (confirm('Bạn có chắc chắn muốn xóa hồ sơ mặt bằng này? Hành động này không thể hoàn tác.')) { 
+                const success = await SiteService.deleteSite(id);
+                if (success) location.reload();
+            } 
+        };
         window.addField = () => { const l = prompt('Tên cột:'); if (l) { const t = prompt('Loại (text, select, textarea):', 'text') || 'text'; const fs = FormService.getFields(true); fs.push({ id: 'f' + Date.now(), label: l, type: t, is_active: true }); FormService.saveFields(fs); if (window.router) window.router.handleRoute(); } };
         window.mpsaPrompt = async (id) => { const v = prompt('Nhập MPSA mới (Số):'); if (v) { await SiteService.updateMPSA(id, v, ''); location.reload(); } };
         window.ver2 = async (id) => { if (confirm('Tạo Version 2 từ dữ liệu hiện tại?')) { await SiteService.createVersion2(id); alert('Đã tạo V2! Giờ bạn có thể chỉnh sửa Version 2.'); location.reload(); } };
