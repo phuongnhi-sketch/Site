@@ -9,7 +9,7 @@ export const UserManagementView = {
     render: async () => {
         const users = (await UserService.getUsers());
         return `
-                    <div class="animate-fade-in" style="max-width:1000px; position:relative;">
+                    <div class="animate-fade-in" style="max-width:1200px; position:relative;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem">
                             <h1 style="font-family:var(--font-heading)">👤 Quản lý User</h1>
                             <button class="btn-primary" style="padding:0.8rem 1.5rem; border-radius:12px;" onclick="window.showUserModal()">+ Thêm User</button>
@@ -19,11 +19,10 @@ export const UserManagementView = {
                                 <thead>
                                     <tr>
                                         <th>Tên User (Name)</th>
-                                        
-                                        <th>Mật khẩu</th>
+                                        <th>Email</th>
                                         <th>Mức độ (Role)</th>
-                                        <th>Email (Nhận Noti)</th>
                                         <th>Trạng thái</th>
+                                        <th>Mật khẩu</th>
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
@@ -37,23 +36,38 @@ export const UserManagementView = {
             return `
                                         <tr>
                                             <td><strong>${u.name}</strong></td>
-                                            
-                                            <td>*******</td>
-                                            <td><span class="status-pill status-SUBMITTED" style="background:#E0F2FE">${roleDisplay}</span></td>
                                             <td>${u.email || '---'}</td>
+                                            <td>
+                                                <span class="status-pill" style="background:${(() => {
+                                                    if (u.role === 'ADMIN') return '#F3E8FF';
+                                                    if (u.role === 'BOD_L1' || u.role === 'BOD_L2') return '#DBEAFE';
+                                                    if (u.role === 'PROJECT') return '#DCFCE7';
+                                                    if (u.role === 'MB') return '#FEF3C7';
+                                                    return '#F1F5F9';
+                                                })()}; color:${(() => {
+                                                    if (u.role === 'ADMIN') return '#7E22CE';
+                                                    if (u.role === 'BOD_L1' || u.role === 'BOD_L2') return '#1E40AF';
+                                                    if (u.role === 'PROJECT') return '#15803D';
+                                                    if (u.role === 'MB') return '#B45309';
+                                                    return '#475569';
+                                                })()}">${roleDisplay}</span>
+                                            </td>
                                             <td>
                                                 <span class="status-pill" style="background:${u.is_active !== false ? '#DCFCE7' : '#FEE2E2'}; color:${u.is_active !== false ? '#15803D' : '#B91C1C'}">
                                                     ${u.is_active !== false ? '● Hoạt động' : '● Đã khóa'}
                                                 </span>
                                             </td>
+                                            <td>*******</td>
                                             <td>
-                                                <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem" onclick="window.showUserModal('${u.id}')">Sửa</button>
-                                                ${u.role !== 'ADMIN' ? `
-                                                    <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:${u.is_active !== false ? '#94a3b8' : '#059669'}; border-color:${u.is_active !== false ? '#e2e8f0' : '#dcfce7'}" onclick="window.toggleUserActive('${u.id}', ${u.is_active !== false})">
-                                                        ${u.is_active !== false ? 'Khóa' : 'Mở khóa'}
-                                                    </button>
-                                                    <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:red; border-color:#FEE2E2" onclick="window.deleteUser('${u.id}', '${u.role}')">Xóa</button>
-                                                ` : ''}
+                                                <div style="display:flex; gap:6px">
+                                                    <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem" onclick="window.showUserModal('${u.id}')">Sửa</button>
+                                                    ${u.role !== 'ADMIN' ? `
+                                                        <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:${u.is_active !== false ? '#94a3b8' : '#059669'}; border-color:${u.is_active !== false ? '#e2e8f0' : '#dcfce7'}" onclick="window.toggleUserActive('${u.id}', ${u.is_active !== false})">
+                                                            ${u.is_active !== false ? 'Khóa' : 'Mở khóa'}
+                                                        </button>
+                                                        <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:red; border-color:#FEE2E2" onclick="window.deleteUser('${u.id}', '${u.role}')">Xóa</button>
+                                                    ` : ''}
+                                                </div>
                                             </td>
                                         </tr>`;
         }).join('')}
@@ -73,14 +87,14 @@ export const UserManagementView = {
                                     </div>
                                     
                                     <div>
-                                        <label style="font-weight:700; font-size:0.85rem">Mật khẩu <span style="color:red">*</span></label>
-                                        <input type="password" id="u-password" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
-                                        <small id="u-pass-hint" style="color:#666; font-size:0.75rem; display:none;">(Nhập mật khẩu mới nếu muốn đổi)</small>
-                                    </div>
-                                    <div>
                                         <label style="font-weight:700; font-size:0.85rem">Email (Đăng nhập & Noti) <span style="color:red">*</span></label>
                                         <input type="email" id="u-email" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
                                         <small id="u-email-hint" style="color:#666; font-size:0.75rem; display:none;">(Không thể thay đổi Email sau khi tạo)</small>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700; font-size:0.85rem">Mật khẩu <span style="color:red">*</span></label>
+                                        <input type="password" id="u-password" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                        <small id="u-pass-hint" style="color:#666; font-size:0.75rem; display:none;">(Nhập mật khẩu mới nếu muốn đổi)</small>
                                     </div>
                                     <div>
                                         <label style="font-weight:700; font-size:0.85rem">Mức độ sử dụng (Role) <span style="color:red">*</span></label>
