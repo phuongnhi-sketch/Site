@@ -316,8 +316,8 @@ window.STATUS_LABELS = STATUS_LABELS;
 
             let html = '<html><head><title>Báo cáo hồ sơ</title>';
             html += '<style>' +
-                '@page { size: auto; margin: 0; } ' +
-                'body{font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif; margin:0; padding:20mm; color:#333;} ' +
+                '@page { size: auto; margin: 15mm; } ' +
+                'body{font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif; margin:0; padding:0; color:#333;} ' +
                 '.page-break{page-break-after:always; margin-bottom:30px;} ' +
                 '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px} ' +
                 '.header h2{font-size:1.8rem; margin:0; font-weight:800;} ' +
