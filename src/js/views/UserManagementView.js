@@ -1,6 +1,7 @@
 import { SiteService } from '../../services/siteService.js';
 import { FormService } from '../../services/formService.js';
 import { UserService } from '../../services/userService.js';
+import { AuthService } from '../../services/authService.js';
 import { NotificationService } from '../../services/notificationService.js';
 import { store } from '../store.js';
 
@@ -69,8 +70,9 @@ export const UserManagementView = {
                                         <small id="u-pass-hint" style="color:#666; font-size:0.75rem; display:none;">(Nhập mật khẩu mới nếu muốn đổi)</small>
                                     </div>
                                     <div>
-                                        <label style="font-weight:700; font-size:0.85rem">Email nhận Noti</label>
-                                        <input type="email" id="u-email" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                        <label style="font-weight:700; font-size:0.85rem">Email (Đăng nhập & Noti) <span style="color:red">*</span></label>
+                                        <input type="email" id="u-email" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
+                                        <small id="u-email-hint" style="color:#666; font-size:0.75rem; display:none;">(Không thể thay đổi Email sau khi tạo)</small>
                                     </div>
                                     <div>
                                         <label style="font-weight:700; font-size:0.85rem">Mức độ sử dụng (Role) <span style="color:red">*</span></label>
@@ -125,6 +127,9 @@ export const UserManagementView = {
                     document.getElementById('u-password').required = false;
                     document.getElementById('u-pass-hint').style.display = 'block';
                     document.getElementById('u-email').value = u.email || '';
+                    document.getElementById('u-email').readOnly = true;
+                    document.getElementById('u-email').style.background = '#f5f5f5';
+                    document.getElementById('u-email-hint').style.display = 'block';
                     roleEl.value = u.role;
                     document.getElementById('u-region').value = u.region || 'NORTH';
                     document.getElementById('u-brand').value = u.brand || 'TPC';
@@ -138,6 +143,9 @@ export const UserManagementView = {
                 document.getElementById('u-password').required = true;
                 document.getElementById('u-pass-hint').style.display = 'none';
                 document.getElementById('u-email').value = '';
+                document.getElementById('u-email').readOnly = false;
+                document.getElementById('u-email').style.background = '#fff';
+                document.getElementById('u-email-hint').style.display = 'none';
                 roleEl.value = 'MB';
                 document.getElementById('u-region').value = 'NORTH';
                 document.getElementById('u-brand').value = 'TPC';
@@ -155,19 +163,45 @@ export const UserManagementView = {
         window.saveUserModal = async () => {
             const id = document.getElementById('u-id').value;
             const pw = document.getElementById('u-password').value;
+            const email = document.getElementById('u-email').value;
+            
             const u = {
-                id: id || Date.now().toString(),
+                id: id,
                 name: document.getElementById('u-name').value,
                 username: document.getElementById('u-username').value,
                 role: document.getElementById('u-role').value,
-                email: document.getElementById('u-email').value,
+                email: email,
                 region: document.getElementById('u-role').value === 'MB' ? document.getElementById('u-region').value : 'ALL',
                 brand: document.getElementById('u-role').value === 'BOD_L2' ? document.getElementById('u-brand').value : 'ALL'
             };
-            if (pw !== '***' && pw.trim() !== '') u.password = pw;
-            if (pw === '***' && id) {
-                const existing = (await UserService.getUsers()).find(x => x.id === id);
-                if (existing) u.password = existing.password;
+
+            if (!id) {
+                // Tạo mới User qua Supabase Auth
+                try {
+                    const authRes = await AuthService.createUser(email, pw, {
+                        username: u.username,
+                        name: u.name,
+                        role: u.role,
+                        region: u.region,
+                        brand: u.brand
+                    });
+                    
+                    if (authRes && authRes.user) {
+                        u.id = authRes.user.id;
+                        u.password = '123456';
+                    } else {
+                        alert('Không thể tạo user trên hệ thống bảo mật (Auth). Vui lòng thử lại.');
+                        return;
+                    }
+                } catch (err) {
+                    alert('Lỗi khi tạo tài khoản Auth: ' + err.message);
+                    return;
+                }
+            } else {
+                if (pw !== '***' && pw.trim() !== '') u.password = pw;
+                if (pw === '***') {
+                    u.password = '***'; // Mật khẩu cũ được giữ nguyên trên Supabase
+                }
             }
 
             await UserService.saveUser(u);
