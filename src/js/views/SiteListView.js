@@ -152,7 +152,7 @@ export const SiteListView = {
                                         </td>
                                         <td><span style="font-weight:600; color:#555">${sBrand || '---'}</span></td>
                                         <td style="font-weight:700; color:var(--accent-blue)">
-                                            ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN') || (s.status === 'REJECTED' && u.role !== 'ADMIN')) ? '*******' : (sPrice ? (isNaN(parseFloat(sPrice.toString().replace(/,/g, ''))) ? sPrice : parseFloat(sPrice.toString().replace(/,/g, '')).toLocaleString('en-US') + ' đ') : '---')}
+                                            ${(u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN')) ? '*******' : (sPrice ? (isNaN(parseFloat(sPrice.toString().replace(/,/g, ''))) ? sPrice : parseFloat(sPrice.toString().replace(/,/g, '')).toLocaleString('en-US') + ' đ') : '---')}
                                         </td>
                                         <td>${s.owner_name || s.owner}</td>
                                         <td>${s.date}</td>

@@ -249,7 +249,7 @@ window.STATUS_LABELS = STATUS_LABELS;
 
             sites.forEach(s => {
                 const processRow = (data, ver) => {
-                    const isMasked = (u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN') || (s.status === 'REJECTED' && u.role !== 'ADMIN'));
+                    const isMasked = (u.role === 'PROJECT' || (s.status === 'FINISH' && u.role !== 'ADMIN'));
                     let row = [
                         s.id, s.code, s.brand, s.name, STATUS_LABELS[s.status],
                         s.region, s.owner_name, s.date, ver,
@@ -358,7 +358,7 @@ window.STATUS_LABELS = STATUS_LABELS;
                 </div>`;
 
                 const renderData = (data, sectionTitle, isV2 = false) => {
-                    const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
+                    const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN'));
                     
                     html += `<div class="ver-title">${sectionTitle}</div><div class="grid">`;
                     fields.forEach(f => {

@@ -13,7 +13,7 @@ export const DetailView = {
         const site = sites.find(s => s.id === id);
         if (!site) return '<h1>Không tìm thấy hồ sơ</h1>';
 
-        const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
+        const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN'));
 
         // Versioning logic via URL
         const isViewV1 = params.get('v') === '1';
@@ -114,8 +114,8 @@ export const DetailView = {
                                 const pTax = parseFloat((data['f2_2'] || '').toString().replace(/,/g, '')) || 0;
                                 const mpsa = parseFloat(site.current_mpsa) || 0;
                                 if (mpsa > 0 && pTax > 0) {
-                                    const ratio = (pTax / mpsa).toLocaleString('en-US', { maximumFractionDigits: 2 });
-                                    return `<div style="font-size:0.85rem; font-weight:700; color:#059669; background:#ECFDF5; padding:6px 10px; border-radius:8px; margin-bottom:0.8rem; display:inline-block; border: 1px solid #A7F3D0">📈 Giá thuê có thuế / MPSA: ${ratio}</div>`;
+                                    const ratio = (pTax / mpsa * 100).toFixed(1) + '%';
+                                    return `<div style="font-size:0.85rem; font-weight:700; color:#059669; background:#ECFDF5; padding:6px 10px; border-radius:8px; margin-bottom:0.8rem; display:inline-block; border: 1px solid #A7F3D0">📈 Thuế / MPSA: ${ratio}</div>`;
                                 }
                                 return '';
                             })()}
@@ -124,7 +124,7 @@ export const DetailView = {
                             ` : ''}
                         </div>
 
-                         ${(u.role === 'ADMIN' || u.role === 'MB') ? `
+                         ${(u.role === 'ADMIN') ? `
                             <div style="padding:1rem; background:#EFF6FF; border-radius:14px; margin-bottom:1.2rem">
                                 <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI</label>
                                 <div style="display:flex; flex-wrap:wrap; gap:6px">
@@ -158,10 +158,14 @@ export const DetailView = {
                             }).join('')}
                             ${(!site.comments || site.comments.length === 0) ? '<p style="text-align:center; color:#ccc">Chưa có bình luận.</p>' : ''}
                         </div>
-                        <div>
-                            <textarea id="msg" style="width:100%; border-radius:12px; padding:0.8rem; border:1px solid #ddd; margin-bottom:0.8rem" placeholder="Viết nhận xét..."></textarea>
-                            <button class="btn-primary" style="width:100%" onclick="window.doComment('${site.id}')">Gửi nhận xét</button>
-                        </div>
+                            ${(site.status === 'FINISH' || site.status === 'REJECTED') ? `
+                                <div style="text-align:center; padding:1rem; background:#F8FAFC; border-radius:12px; color:#64748B; font-size:0.85rem; border:1px dashed #CBD5E1">
+                                    🔒 Hồ sơ đã đóng. Không thể bình luận thêm.
+                                </div>
+                            ` : `
+                                <textarea id="msg" style="width:100%; border-radius:12px; padding:0.8rem; border:1px solid #ddd; margin-bottom:0.8rem" placeholder="Viết nhận xét..."></textarea>
+                                <button class="btn-primary" style="width:100%" onclick="window.doComment('${site.id}')">Gửi nhận xét</button>
+                            `}
                     </div>
                 </div>
             </div>`;
