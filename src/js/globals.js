@@ -416,6 +416,6 @@ window.STATUS_LABELS = STATUS_LABELS;
                 location.reload();
             } catch (err) {
                 console.error('Login error:', err);
-                alert('Sai tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.');
+                alert(`LỖI ĐĂNG NHẬP:\n${err.message || 'Sai tài khoản hoặc mật khẩu'}\n\nVui lòng kiểm tra lại thông tin.`);
             }
         };
