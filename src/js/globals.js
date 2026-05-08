@@ -2,7 +2,18 @@ import { SiteService, STATUS_LABELS } from '../services/siteService.js';
 import { FormService } from '../services/formService.js';
 import { NotificationService } from '../services/notificationService.js';
 import { UserService } from '../services/userService.js';
+import { supabase } from '../services/supabaseClient.js';
 import { store } from './store.js';
+
+// Mapping Quick Demo buttons → email (khớp với auth users đã tạo)
+const DEMO_EMAIL_MAP = {
+    'ADMIN-ALL-ALL': 'admin@sitemanagement.app',
+    'MB-NORTH-ALL': 'ngoc@sitemanagement.app',
+    'BOD_L1-ALL-ALL': 'nam@sitemanagement.app',
+    'BOD_L2-ALL-TPC': 'tpc@sitemanagement.app',
+    'PROJECT-ALL-ALL': 'project@sitemanagement.app',
+};
+const DEMO_PASSWORD = '123';
 
 window.STATUS_LABELS = STATUS_LABELS;
 
@@ -383,31 +394,56 @@ window.STATUS_LABELS = STATUS_LABELS;
             window.printSelected();
         };
 
-        window.login = (role, region, brand = 'ALL') => {
-            const user = {
-                id: (role.toLowerCase() + '-' + region.toLowerCase() + (brand && brand !== 'ALL' ? '-' + brand.toLowerCase() : '')).toLowerCase(),
-                name: role === 'ADMIN' ? 'Chị Nhi' :
-                    (role === 'MB' ? ('MB ' + region) :
-                        (role === 'BOD_L1' ? 'BOD' :
-                            (role === 'BOD_L2' ? brand :
-                                'Project'))),
-                role, region, brand
-            };
-            localStorage.setItem('site_poc_user', JSON.stringify(user)); 
-            location.href = '#dashboard'; 
-            location.reload();
+        window.login = async (role, region, brand = 'ALL') => {
+            const key = `${role}-${region}-${brand}`;
+            const email = DEMO_EMAIL_MAP[key];
+            if (!email) { alert('Chưa có tài khoản demo cho vai trò này!'); return; }
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password: DEMO_PASSWORD });
+                if (error) throw error;
+                // Lấy metadata từ Supabase Auth user (trigger đã populate từ bảng users)
+                const meta = data.user.user_metadata || {};
+                const uObj = {
+                    id: meta.username || data.user.id,
+                    name: meta.name || email,
+                    role: meta.role || 'MB',
+                    region: meta.region || 'ALL',
+                    brand: meta.brand || 'ALL',
+                    email: data.user.email,
+                };
+                localStorage.setItem('site_poc_user', JSON.stringify(uObj));
+                store.setState({ user: uObj });
+                location.href = '#dashboard';
+                location.reload();
+            } catch (err) {
+                console.error('Login error:', err);
+                alert('Đăng nhập thất bại: ' + (err.message || err));
+            }
         };
 
         window.doLogin = async () => {
-            const uInput = document.getElementById('login-user').value;
+            const uInput = document.getElementById('login-user').value.trim();
             const pInput = document.getElementById('login-pass').value;
-            const users = (await UserService.getUsers());
-            const valid = users.find(u => u.username === uInput && u.password === pInput);
-            if (valid) {
-                const uObj = { id: valid.id, name: valid.name, role: valid.role, region: valid.region, brand: valid.brand, email: valid.email };
+            // Map username → email: thêm @sitemanagement.app nếu chưa có @
+            let email = uInput.includes('@') ? uInput : uInput + '@sitemanagement.app';
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password: pInput });
+                if (error) throw error;
+                const meta = data.user.user_metadata || {};
+                const uObj = {
+                    id: meta.username || data.user.id,
+                    name: meta.name || email,
+                    role: meta.role || 'MB',
+                    region: meta.region || 'ALL',
+                    brand: meta.brand || 'ALL',
+                    email: data.user.email,
+                };
                 localStorage.setItem('site_poc_user', JSON.stringify(uObj));
-                location.href = '#dashboard'; location.reload();
-            } else {
+                store.setState({ user: uObj });
+                location.href = '#dashboard';
+                location.reload();
+            } catch (err) {
+                console.error('Login error:', err);
                 alert('Sai tài khoản hoặc mật khẩu!');
             }
         };

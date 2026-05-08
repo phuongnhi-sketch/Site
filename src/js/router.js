@@ -1,7 +1,9 @@
 /**
  * ROUTER.JS - ĐIỀU HƯỚNG SPA BẰNG HASH ROUTING
+ * Auth check qua Supabase Auth session (không phải localStorage)
  */
 import { store } from './store.js';
+import { supabase } from '../services/supabaseClient.js';
 
 export class Router {
     constructor(routes) {
@@ -13,8 +15,38 @@ export class Router {
     }
 
     async handleRoute() {
-        const user = store.getState().user || JSON.parse(localStorage.getItem('site_poc_user'));
-        if (!store.getState().user && user) store.setState({ user });
+        // 1. Kiểm tra Supabase Auth session
+        const { data: { session } } = await supabase.auth.getSession();
+        let user = store.getState().user;
+
+        if (session && session.user) {
+            // Có session Supabase → dùng metadata + localStorage cache
+            if (!user) {
+                // Thử đọc từ localStorage cache trước (đã được save khi login)
+                const cached = localStorage.getItem('site_poc_user');
+                if (cached) {
+                    user = JSON.parse(cached);
+                } else {
+                    // Fallback: dùng user_metadata từ Supabase Auth
+                    const meta = session.user.user_metadata || {};
+                    user = {
+                        id: meta.username || session.user.id,
+                        name: meta.name || session.user.email,
+                        role: meta.role || 'MB',
+                        region: meta.region || 'ALL',
+                        brand: meta.brand || 'ALL',
+                        email: session.user.email,
+                    };
+                    localStorage.setItem('site_poc_user', JSON.stringify(user));
+                }
+                store.setState({ user });
+            }
+        } else {
+            // Không có Supabase session → xóa user khỏi store
+            user = null;
+            store.setState({ user: null });
+            localStorage.removeItem('site_poc_user');
+        }
 
         let hash = window.location.hash.split('?')[0];
         if (!hash) hash = user ? '#dashboard' : '#login';
@@ -53,3 +85,4 @@ export class Router {
         }
     }
 }
+

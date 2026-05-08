@@ -35,18 +35,43 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 ## 5. Việc tiếp theo (Next Priorities)
 1. **[✅ XONG] Phase 6.1**: Cài Node.js, khởi tạo project, tạo SQL migration.
 2. **[✅ XONG] Phase 6.2**: Viết 7 service modules (Supabase).
-3. **[⏳ CHỜ NHI] Phase 6.1b**: Chạy SQL trên Supabase + tạo Storage bucket.
+3. **[✅ XONG] Phase 6.1b**: Chạy SQL trên Supabase + tạo Storage bucket (Nhi đã làm 07/05).
 4. **[✅ XONG] Phase 6.3**: Tách `demo.html` thành project Vite (CSS + Views + Router).
 5. **[✅ XONG] Phase 6.4**: Test local & Đồng bộ giao diện (UI/UX Parity).
-6. **[TIẾP THEO] Phase 6.5**: Deploy lên Vercel.
+6. **[⏳ ĐANG LÀM] Phase 6.5**: Deploy lên Vercel.
 7. **Phase 6.6**: Kiểm thử & hoàn thiện.
 
 ## 6. Yêu cầu Phase Backend (Future Requirements)
 *Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*
 - **Auto Email Notifications**: Tích hợp gửi email thông báo tự động (Nodemailer / SendGrid / Amazon SES) tới địa chỉ email của User khi có Noti mới.
 ## 7. Nhật ký Khắc phục lỗi (Incident Log)
-- **2026-05-05: Lỗi Encoding Tiếng Việt & Emoji (Mangled Characters)**
-    - **Vấn đề**: Do thao tác lưu file hoặc chạy script tự động không đồng nhất định dạng, các ký tự tiếng Việt và Emoji trong `demo.html` bị biến thành mã rác (ví dụ: `ðŸ`, `ï¸`).
-    - **Hậu quả**: Làm hỏng giao diện Dashboard, các nút bấm icon và các tiêu đề tiếng Việt.
-    - **Khắc phục**: Đã thực hiện quét toàn bộ file ở cấp độ byte (Hex code) và thay thế thủ công các dòng lỗi bằng nội dung UTF-8 chuẩn.
-    - **Phòng ngừa**: Đã thêm quy tắc **#11** và **#12** vào `rule.md`. AI Agent tương lai tuyệt đối không dùng script thay thế chuỗi bừa bãi và phải luôn kiểm tra tính toàn vẹn của UTF-8 trước khi lưu.
+- **2026-05-07: Lỗi Build Vercel & Sync Giao diện v3.2.1**
+    - **Vấn đề**: Bản cập nhật v3.2.0 bị lỗi build trên Vercel do sai đường dẫn import Supabase và tồn tại file rác. Ngoài ra, giao diện Dashboard bị Việt hóa không đúng ý người dùng.
+    - **Hậu quả**: Web không cập nhật bản mới, nút In PDF hoạt động không ổn định.
+    - **Khắc phục**: 
+        - Hoàn trả Dashboard về tiếng Anh (Draft, Submitted...).
+        - Xóa bỏ Bar Chart theo yêu cầu.
+        - Tối ưu PDF Engine: Mở cửa sổ ngay lập tức và đợi ảnh decode xong mới in.
+        - Sửa lỗi import path và xóa thư mục `src/js/services` dư thừa.
+
+- **2026-05-08: Fix Danh sách Site trống & Chuyển đổi Supabase Auth (v3.3.0) ✅**
+    - **Vấn đề**: Danh sách Site trống do RLS chặn `anon` và sai lệch schema code/DB.
+    - **Giải pháp dứt điểm**:
+        - ✅ Chuyển toàn bộ hệ thống sang **Supabase Auth** (Production-safe).
+        - ✅ Sửa lỗi schema: Code gọi `profiles` đã được đổi về bảng `users` thực tế của Nhi.
+        - ✅ Đồng bộ tên cột: `thumb` -> `thumb_url`, `site_mpsa_history` -> `mpsa_history`.
+        - ✅ Cài đặt Trigger trên Supabase: Tự động đồng bộ Auth User -> Table Users.
+        - ✅ Cập nhật `LoginView`: Chỉ hiển thị các Quick Demo buttons có trong database thật.
+    - **Kết quả**: App hoạt động bảo mật, không cần dùng anon policy nguy hiểm. Danh sách Site đã có thể truy xuất bình thường qua `authenticated` session.
+    - **Bàn giao**: Nhi đã chạy SQL `create_auth_users.sql` thành công. App đã sẵn sàng để push lên Vercel.
+
+## 8. Hướng dẫn Đăng nhập Demo (Credentials)
+| Tài khoản | Username | Password | Email |
+|-----------|----------|----------|-------|
+| Admin | admin | 123 | admin@sitemanagement.app |
+| MB Bắc | ngoc | 123 | ngoc@sitemanagement.app |
+| BOD | Nam | 123 | nam@sitemanagement.app |
+| BOD TPC | TPC | 123 | tpc@sitemanagement.app |
+| Project | Project | 123 | project@sitemanagement.app |
+
+

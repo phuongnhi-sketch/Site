@@ -11,21 +11,36 @@ export const STATUS_LABELS = {
 import { supabase } from './supabaseClient.js';
 import { NotificationService } from './notificationService.js';
 
+/**
+ * Helper: Trả về dữ liệu hiển thị mới nhất (v2_data nếu có, ngược lại answers).
+ */
+function getLatestData(site) {
+    return site.v2_data || site.answers || {};
+}
+
 export const SiteService = {
+    /**
+     * Trả về dữ liệu hiển thị mới nhất cho site (v2_data hoặc answers).
+     */
+    getLatestData(site) {
+        return getLatestData(site);
+    },
+
     async getSites() {
         const { data, error } = await supabase
             .from('sites')
             .select(`
                 *,
                 comments:site_comments(*),
-                mpsa_history:site_mpsa_history(*)
+                mpsa_history(*)
             `)
             .order('created_at', { ascending: false });
         if (error) {
             console.error('Error fetching sites:', error);
             return [];
         }
-        return data || [];
+        // Map thumb_url → thumb cho tương thích UI legacy
+        return (data || []).map(s => ({ ...s, thumb: s.thumb_url || s.thumb }));
     },
 
     async getSiteById(id) {
@@ -34,7 +49,7 @@ export const SiteService = {
             .select(`
                 *,
                 comments:site_comments(*),
-                mpsa_history:site_mpsa_history(*)
+                mpsa_history(*)
             `)
             .eq('id', id)
             .single();
@@ -42,6 +57,8 @@ export const SiteService = {
             console.error('Error fetching site:', error);
             return null;
         }
+        // Map thumb_url → thumb cho tương thích UI legacy
+        if (data) data.thumb = data.thumb_url || data.thumb;
         return data;
     },
 
@@ -54,7 +71,7 @@ export const SiteService = {
                 owner_name: site.owner_name,
                 region: site.region,
                 status: site.status,
-                thumb: site.thumb,
+                thumb_url: site.thumb,
                 inner_images: site.inner_images,
                 name: site.name,
                 brand: site.brand,
@@ -119,7 +136,7 @@ export const SiteService = {
     },
 
     async updateMPSA(siteId, value, note) {
-        await supabase.from('site_mpsa_history').insert({ site_id: siteId, value, note });
+        await supabase.from('mpsa_history').insert({ site_id: siteId, value, note });
         const { error } = await supabase
             .from('sites')
             .update({ current_mpsa: value })

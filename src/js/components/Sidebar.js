@@ -35,7 +35,11 @@ export const Sidebar = {
         `;
     },
     afterRender: async () => {
-        document.getElementById('logout-sidebar-btn')?.addEventListener('click', () => {
+        document.getElementById('logout-sidebar-btn')?.addEventListener('click', async () => {
+            try {
+                const { supabase } = await import('../../services/supabaseClient.js');
+                await supabase.auth.signOut();
+            } catch (e) { console.warn('SignOut error:', e); }
             localStorage.removeItem('site_poc_user');
             store.setState({ user: null });
             window.location.hash = '#login';

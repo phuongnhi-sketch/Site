@@ -63,6 +63,12 @@
 - **Ưu tiên thêm mới**: Mọi tính năng mới nên được viết bổ sung hoặc tách biệt, tránh can thiệp sâu vào logic cũ đang chạy ổn định.
 - **Xác nhận trước khi sửa**: Nếu phát hiện code cũ có lỗi hoặc cần cải tiến, phải báo cáo và chờ Nhi phê duyệt phương án sửa đổi trước khi thực hiện.
 
+## 13. Quy tắc Bảo mật & Triển khai Supabase ⭐ NEW
+- **Supabase Auth First**: Tuyệt đối không sử dụng chính sách `anon` (vô danh) có quyền ghi/sửa trong môi trường Production. Mọi thao tác dữ liệu phải được thực hiện thông qua `authenticated` session.
+- **Tính nhất quán Schema**: Khi viết Trigger hoặc Function trên Supabase, phải kiểm tra kỹ bảng đích (ví dụ: dùng bảng `users` thay vì `profiles` nếu đó là cấu trúc thực tế của database).
+- **Quản lý Credentials**: Mật khẩu và thông tin đăng nhập demo phải tuân thủ đúng bảng mapping trong tài liệu bàn giao. Không chia sẻ key Supabase ra ngoài phạm vi dự án.
+- **An toàn RLS**: Luôn kiểm tra lại Row Level Security (RLS) sau mỗi lần thay đổi schema để đảm bảo dữ liệu nhạy cảm (giá thuê, thông tin tài chính) không bị rò rỉ cho các vai trò không có quyền.
+
 ---
 **Trạng thái: ĐÃ KÍCH HOẠT (ACTIVE)**
-*Ngày cập nhật: 05/05/2026 - v2.1*
+*Ngày cập nhật: 08/05/2026 - v3.0*
