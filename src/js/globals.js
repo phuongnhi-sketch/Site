@@ -135,8 +135,21 @@ window.STATUS_LABELS = STATUS_LABELS;
             const ss = (await SiteService.getSites());
             const exSite = window.currentId ? ss.find(s => s.id === window.currentId) : null;
 
+            let finalId = window.currentId;
+            if (!finalId) {
+                const now = new Date();
+                const prefix = now.getFullYear().toString().slice(2) + 
+                               (now.getMonth() + 1).toString().padStart(2, '0') + 
+                               now.getDate().toString().padStart(2, '0');
+                
+                // Đếm số hồ sơ đã tạo trong ngày hôm nay có ID bắt đầu bằng prefix
+                const todaySites = ss.filter(s => s.id && s.id.toString().startsWith(prefix));
+                const nextNum = (todaySites.length + 1).toString().padStart(3, '0');
+                finalId = prefix + nextNum;
+            }
+
             const site = {
-                id: window.currentId || Date.now().toString(),
+                id: finalId,
                 owner_id: exSite ? (exSite.owner_id || exSite.owner) : u.id,
                 owner: exSite ? (exSite.owner_id || exSite.owner) : u.id,
                 owner_name: exSite ? exSite.owner_name : u.name,
