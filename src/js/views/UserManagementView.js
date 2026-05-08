@@ -23,6 +23,7 @@ export const UserManagementView = {
                                         <th>Mật khẩu</th>
                                         <th>Mức độ (Role)</th>
                                         <th>Email (Nhận Noti)</th>
+                                        <th>Trạng thái</th>
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
@@ -41,8 +42,18 @@ export const UserManagementView = {
                                             <td><span class="status-pill status-SUBMITTED" style="background:#E0F2FE">${roleDisplay}</span></td>
                                             <td>${u.email || '---'}</td>
                                             <td>
+                                                <span class="status-pill" style="background:${u.is_active !== false ? '#DCFCE7' : '#FEE2E2'}; color:${u.is_active !== false ? '#15803D' : '#B91C1C'}">
+                                                    ${u.is_active !== false ? '● Hoạt động' : '● Đã khóa'}
+                                                </span>
+                                            </td>
+                                            <td>
                                                 <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem" onclick="window.showUserModal('${u.id}')">Sửa</button>
-                                                ${u.role !== 'ADMIN' ? `<button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:red; border-color:#FEE2E2" onclick="window.deleteUser('${u.id}')">Xóa</button>` : ''}
+                                                ${u.role !== 'ADMIN' ? `
+                                                    <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:${u.is_active !== false ? '#94a3b8' : '#059669'}; border-color:${u.is_active !== false ? '#e2e8f0' : '#dcfce7'}" onclick="window.toggleUserActive('${u.id}', ${u.is_active !== false})">
+                                                        ${u.is_active !== false ? 'Khóa' : 'Mở khóa'}
+                                                    </button>
+                                                    <button class="btn-ghost" style="padding:4px 10px; font-size:0.75rem; color:red; border-color:#FEE2E2" onclick="window.deleteUser('${u.id}', '${u.role}')">Xóa</button>
+                                                ` : ''}
                                             </td>
                                         </tr>`;
                 }).join('')}
@@ -169,7 +180,8 @@ export const UserManagementView = {
                 role: document.getElementById('u-role').value,
                 email: email,
                 region: document.getElementById('u-role').value === 'MB' ? document.getElementById('u-region').value : 'ALL',
-                brand: document.getElementById('u-role').value === 'BOD_L2' ? document.getElementById('u-brand').value : 'ALL'
+                brand: document.getElementById('u-role').value === 'BOD_L2' ? document.getElementById('u-brand').value : 'ALL',
+                is_active: id ? (users.find(x => x.id === id)?.is_active ?? true) : true
             };
 
             if (!id) {
@@ -206,8 +218,19 @@ export const UserManagementView = {
             if(window.router) window.router.handleRoute();
         };
 
-        window.deleteUser = async (id) => {
-            if (confirm('Chắc chắn xóa user này?')) {
+        window.toggleUserActive = async (id, currentStatus) => {
+            if (confirm(`Bạn có chắc chắn muốn ${currentStatus ? 'KHÓA' : 'MỞ KHÓA'} tài khoản này?`)) {
+                await UserService.toggleActive(id, currentStatus);
+                if(window.router) window.router.handleRoute();
+            }
+        };
+
+        window.deleteUser = async (id, role) => {
+            let msg = 'Chắc chắn xóa user này?';
+            if (role === 'MB') {
+                msg = '⚠️ CẢNH BÁO: User này thuộc team MB và có thể đã tạo nhiều hồ sơ mặt bằng.\n\nNếu bạn xóa User, các hồ sơ đó có thể bị lỗi hiển thị hoặc bị xóa mất.\n\nLỜI KHUYÊN: Bạn nên chọn "KHÓA" tài khoản thay vì Xóa để giữ lại dữ liệu hồ sơ.\n\nBạn vẫn muốn tiếp tục XÓA chứ?';
+            }
+            if (confirm(msg)) {
                 await UserService.deleteUser(id);
                 if(window.router) window.router.handleRoute();
             }

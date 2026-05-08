@@ -440,6 +440,10 @@ window.STATUS_LABELS = STATUS_LABELS;
                     throw new Error('Tài khoản Auth hợp lệ nhưng không tìm thấy trong database nội bộ.');
                 }
                 
+                if (dbUser.is_active === false) {
+                    throw new Error('Tài khoản này đã bị KHÓA. Vui lòng liên hệ Admin để mở lại.');
+                }
+                
                 const uObj = {
                     id: dbUser.id,
                     name: dbUser.name,

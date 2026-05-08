@@ -40,6 +40,7 @@ export const UserService = {
                 region: user.region || 'ALL',
                 brand: user.brand || 'ALL',
                 email: user.email,
+                is_active: user.is_active !== undefined ? user.is_active : true,
             }, { onConflict: 'id' });
             
         if (error) {
@@ -52,5 +53,14 @@ export const UserService = {
     async deleteUser(id) {
         const { error } = await supabase.from('users').delete().eq('id', id);
         if (error) console.error('Error deleting user:', error);
+    },
+
+    async toggleActive(id, currentStatus) {
+        const { error } = await supabase
+            .from('users')
+            .update({ is_active: !currentStatus })
+            .eq('id', id);
+        if (error) console.error('Error toggling user status:', error);
+        return !error;
     },
 };
