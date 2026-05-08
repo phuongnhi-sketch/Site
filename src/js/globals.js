@@ -290,16 +290,19 @@ window.STATUS_LABELS = STATUS_LABELS;
             document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = master.checked);
         };
 
-        window.printSelected = async () => {
+        window.printSelected = async (forcedIds = null) => {
             const win = window.open('about:blank', '_blank');
             if (!win) return alert('LỖI: Trình duyệt đã chặn cửa sổ bật lên (Popup). Vui lòng nhìn lên thanh địa chỉ trình duyệt, chọn "Luôn cho phép cửa sổ bật lên" rồi bấm In lại nhé!');
             
             win.document.write('<html><head><title>Đang chuẩn bị báo cáo...</title><style>body{display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;color:#666;}</style></head><body><div><h2 style="margin-bottom:10px">⌛ Đang nạp dữ liệu báo cáo...</h2><p>Vui lòng đợi trong giây lát.</p></div></body></html>');
 
             const u = store.getState().user;
-            let selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
-            if (selectedIds.length === 0) {
-                selectedIds = (await SiteService.getSites()).map(s => s.id);
+            let selectedIds = forcedIds;
+            if (!selectedIds) {
+                selectedIds = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
+                if (selectedIds.length === 0) {
+                    selectedIds = (await SiteService.getSites()).map(s => s.id);
+                }
             }
 
             const allSites = await SiteService.getSites();
@@ -377,11 +380,7 @@ window.STATUS_LABELS = STATUS_LABELS;
         };
 
         window.printDetail = (id) => {
-            // Re-use printSelected for a single ID to ensure UI consistency
-            document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = false);
-            const target = document.querySelector(`.site-checkbox[data-id="${id}"]`);
-            if (target) target.checked = true;
-            window.printSelected();
+            window.printSelected([id]);
         };
 
         window.doLogin = async () => {
