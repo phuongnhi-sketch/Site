@@ -389,7 +389,7 @@ window.STATUS_LABELS = STATUS_LABELS;
             const pInput = document.getElementById('login-pass').value;
             
             // Map username → email (lowercase để khớp với Supabase Auth)
-            let email = uInput.includes('@') ? uInput.toLowerCase() : (uInput.toLowerCase() + '@sitemanagement.app');
+            let email = uInput.includes('@') ? uInput.toLowerCase() : (uInput.toLowerCase() + '@system.com');
             
             console.log('Attempting login for:', email);
             
