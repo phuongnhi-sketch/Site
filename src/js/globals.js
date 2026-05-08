@@ -315,7 +315,25 @@ window.STATUS_LABELS = STATUS_LABELS;
             const incQA = window.siteFilters?.includeQA;
 
             let html = '<html><head><title>Báo cáo hồ sơ</title>';
-            html += '<style>@page { size: auto; margin: 15mm; } body{font-family:sans-serif; margin:0; padding:20px;} .page-break{page-break-after:always; border-bottom:1px solid #eee; margin-bottom:30px; padding-bottom:30px;} .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px} .field label{font-weight:bold;font-size:10px;color:#666;display:block;text-transform:uppercase} .field p{margin:2px 0;font-size:12px;color:#111} .thumb-img{width:100%; max-width:400px; border-radius:8px; margin-bottom:15px; border:1px solid #ddd} .images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;margin-top:10px} .images-grid img{height:80px;width:100%;object-fit:cover;border-radius:4px;border:1px solid #eee} .tag{background:#2563EB;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:bold} h2{color:#2563EB; font-size:1.1rem; margin:15px 0 10px 0; border-bottom:2px solid #2563EB; padding-bottom:5px} h3{font-size:0.9rem; margin-top:15px; color:#444}</style>';
+            html += '<style>' +
+                '@page { size: auto; margin: 10mm; } ' +
+                'body{font-family:sans-serif; margin:0; padding:20px; color:#333;} ' +
+                '.page-break{page-break-after:always; margin-bottom:30px;} ' +
+                '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px} ' +
+                '.header h2{font-size:1.8rem; margin:0; font-weight:800;} ' +
+                '.header .code{font-size:0.8rem; color:#999;} ' +
+                '.sidebar-box{border:1px solid #f0f0f0; border-radius:16px; padding:20px; margin-bottom:20px; background:#fff; box-shadow: 0 4px 12px rgba(0,0,0,0.03); width:300px;} ' +
+                '.sidebar-box h3{font-size:0.85rem; font-weight:800; margin-top:0; margin-bottom:15px; color:#111;} ' +
+                '.sidebar-box label{font-size:0.65rem; font-weight:700; color:#999; text-transform:uppercase; display:block; margin-bottom:5px;} ' +
+                '.mpsa-val{font-size:1.3rem; font-weight:800; color:#2563EB; margin-bottom:15px;} ' +
+                '.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 40px} ' +
+                '.field label{font-size:0.7rem;color:#999;display:block;margin-bottom:2px;} ' +
+                '.field p{margin:0;font-size:0.9rem;color:#111;font-weight:600;} ' +
+                '.thumb-img{width:400px; height:300px; object-fit:cover; border-radius:12px; margin-bottom:20px; border:1px solid #f0f0f0} ' +
+                '.ver-title{font-size:1.1rem; color:#2563EB; font-weight:800; margin:30px 0 15px 0; border-left:4px solid #2563EB; padding-left:12px; text-transform:uppercase;} ' +
+                '.images-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-top:20px} ' +
+                '.images-grid img{height:100px;width:100%;object-fit:cover;border-radius:8px;border:1px solid #f0f0f0} ' +
+                '</style>';
             html += '</head><body>';
 
             selectedIds.forEach((id, index) => {
@@ -323,15 +341,24 @@ window.STATUS_LABELS = STATUS_LABELS;
                 if (!site) return;
 
                 html += `<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`;
-                html += `<div class="header"><h2>#${index + 1}. ${site.name}</h2><span class="tag">${site.code}</span></div>`;
-                html += `<img src="${site.thumb}" class="thumb-img">`;
+                html += `<div class="header"><h2>#${index + 1}. ${site.name}</h2><span class="code">Mã: ${site.code}</span></div>`;
+                
+                html += `
+                <div style="display:flex; gap:30px; align-items:flex-start; margin-bottom:20px">
+                    <img src="${site.thumb}" class="thumb-img">
+                    <div class="sidebar-box">
+                        <h3>Phê duyệt & Thảo luận</h3>
+                        <label>MPSA ESTIMATE</label>
+                        <div class="mpsa-val">${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---'}</div>
+                        <label>TRẠNG THÁI HIỆN TẠI</label>
+                        <div style="font-weight:800; font-size:1rem; color:#2563EB; background:#EFF6FF; padding:8px 12px; border-radius:8px; display:inline-block">${STATUS_LABELS[site.status]}</div>
+                    </div>
+                </div>`;
 
                 const renderData = (data, sectionTitle, isV2 = false) => {
-                    const color = isV2 ? '#2563EB' : '#475569';
-                    const bgColor = isV2 ? '#EFF6FF' : '#F1F5F9';
                     const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
                     
-                    html += `<h3 style="color:${color}; background:${bgColor}; padding:8px 12px; border-radius:8px; display:inline-block; border-left:4px solid ${color}; margin-top:20px; margin-bottom:10px; font-size:0.85rem; font-weight:800">${sectionTitle}</h3><div class="grid">`;
+                    html += `<div class="ver-title">${sectionTitle}</div><div class="grid">`;
                     fields.forEach(f => {
                         let v = data[f.id] || '';
                         if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) v = '*******';
@@ -355,15 +382,15 @@ window.STATUS_LABELS = STATUS_LABELS;
                 }
 
                 if (site.inner_images && site.inner_images.length > 0) {
-                    html += '<h3 style="color:#475569; border-bottom:1px solid #eee; padding-bottom:5px">Hình ảnh chi tiết</h3><div class="images-grid">';
+                    html += '<div class="ver-title" style="color:#666; border-color:#ccc">Hình ảnh chi tiết</div><div class="images-grid">';
                     site.inner_images.forEach(img => html += `<img src="${img}">`);
                     html += '</div>';
                 }
 
                 if (incQA && site.comments && site.comments.length > 0) {
-                    html += '<h3 style="color:#475569; border-bottom:1px solid #eee; padding-bottom:5px">Lịch sử thảo luận</h3>';
+                    html += '<div class="ver-title" style="color:#666; border-color:#ccc">Lịch sử thảo luận</div>';
                     site.comments.forEach(c => {
-                        html += `<div style="margin-bottom:5px;padding:6px;background:#f9f9f9;border-radius:4px;font-size:11px"><strong>${c.author}</strong>: ${c.text}</div>`;
+                        html += `<div style="margin-bottom:8px;padding:10px;background:#f9f9f9;border-radius:8px;font-size:11px; border-left:3px solid #eee"><strong>${c.author}</strong>: ${c.text}</div>`;
                     });
                 }
                 html += '</div>';
