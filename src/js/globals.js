@@ -316,8 +316,8 @@ window.STATUS_LABELS = STATUS_LABELS;
 
             let html = '<html><head><title>Báo cáo hồ sơ</title>';
             html += '<style>' +
-                '@page { size: auto; margin: 10mm; } ' +
-                'body{font-family:sans-serif; margin:0; padding:20px; color:#333;} ' +
+                '@page { size: auto; margin: 0; } ' +
+                'body{font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif; margin:0; padding:20mm; color:#333;} ' +
                 '.page-break{page-break-after:always; margin-bottom:30px;} ' +
                 '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px} ' +
                 '.header h2{font-size:1.8rem; margin:0; font-weight:800;} ' +
@@ -325,7 +325,7 @@ window.STATUS_LABELS = STATUS_LABELS;
                 '.sidebar-box{border:1px solid #f0f0f0; border-radius:16px; padding:20px; margin-bottom:20px; background:#fff; box-shadow: 0 4px 12px rgba(0,0,0,0.03); width:300px;} ' +
                 '.sidebar-box h3{font-size:0.85rem; font-weight:800; margin-top:0; margin-bottom:15px; color:#111;} ' +
                 '.sidebar-box label{font-size:0.65rem; font-weight:700; color:#999; text-transform:uppercase; display:block; margin-bottom:5px;} ' +
-                '.mpsa-val{font-size:1.3rem; font-weight:800; color:#2563EB; margin-bottom:15px;} ' +
+                '.mpsa-val{font-size:1.3rem; font-weight:800; color:#2563EB; margin-bottom:0;} ' +
                 '.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 40px} ' +
                 '.field label{font-size:0.7rem;color:#999;display:block;margin-bottom:2px;} ' +
                 '.field p{margin:0;font-size:0.9rem;color:#111;font-weight:600;} ' +
@@ -350,8 +350,6 @@ window.STATUS_LABELS = STATUS_LABELS;
                         <h3>Phê duyệt & Thảo luận</h3>
                         <label>MPSA ESTIMATE</label>
                         <div class="mpsa-val">${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---'}</div>
-                        <label>TRẠNG THÁI HIỆN TẠI</label>
-                        <div style="font-weight:800; font-size:1rem; color:#2563EB; background:#EFF6FF; padding:8px 12px; border-radius:8px; display:inline-block">${STATUS_LABELS[site.status]}</div>
                     </div>
                 </div>`;
 
