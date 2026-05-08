@@ -20,8 +20,8 @@ export const NotificationService = {
         return data.map(n => ({ id: n.id, uId: n.user_target, msg: n.message, sId: n.site_id, date: n.created_at, isRead: n.is_read }));
     },
 
-    async add(userId, msg, siteId) {
-        // 1. Lưu vào Database trước
+    async add(userId, msg, siteId, shouldEmail = true) {
+        // 1. Lưu vào Database trước (Luôn lưu để hiện trong App)
         const { error } = await supabase.from('notifications').insert({
             user_target: userId, message: msg, site_id: siteId,
         });
@@ -29,47 +29,49 @@ export const NotificationService = {
             console.error('Error adding notification to DB:', error);
         }
 
-        // 2. Gửi Email thông báo
-        try {
-            let emails = [];
-            
-            if (userId.includes('-all')) {
-                // Lấy email của tất cả user thuộc role đó
-                const roleMap = { 'admin-all': 'ADMIN', 'project-all': 'PROJECT', 'bod_l1-all': 'BOD_L1' };
-                const targetRole = roleMap[userId];
-                if (targetRole) {
-                    const { data } = await supabase.from('users').select('email').eq('role', targetRole);
-                    emails = (data || []).map(u => u.email).filter(e => !!e);
+        // 2. Gửi Email thông báo (Chỉ gửi nếu shouldEmail là true)
+        if (shouldEmail) {
+            try {
+                let emails = [];
+                
+                if (userId.includes('-all')) {
+                    // Lấy email của tất cả user thuộc role đó
+                    const roleMap = { 'admin-all': 'ADMIN', 'project-all': 'PROJECT', 'bod_l1-all': 'BOD_L1' };
+                    const targetRole = roleMap[userId];
+                    if (targetRole) {
+                        const { data } = await supabase.from('users').select('email').eq('role', targetRole);
+                        emails = (data || []).map(u => u.email).filter(e => !!e);
+                    }
+                } else {
+                    // Lấy email của 1 user cụ thể
+                    const { data } = await supabase.from('users').select('email').eq('id', userId).single();
+                    if (data && data.email) emails = [data.email];
                 }
-            } else {
-                // Lấy email của 1 user cụ thể
-                const { data } = await supabase.from('users').select('email').eq('id', userId).single();
-                if (data && data.email) emails = [data.email];
-            }
 
-            if (emails.length > 0) {
-                console.log('Sending notification email to:', emails);
-                await fetch('/api/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        to: emails,
-                        subject: '[Site Management] Thông báo mới',
-                        text: msg,
-                        html: `
-                            <div style="font-family: sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 12px;">
-                                <h2 style="color: #2563EB;">🔔 Thông báo từ Hệ thống</h2>
-                                <p style="font-size: 1.1rem;">${msg}</p>
-                                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                                <p style="font-size: 0.8rem; color: #666;">Vui lòng đăng nhập vào hệ thống để xem chi tiết.</p>
-                                <a href="${window.location.origin}" style="display: inline-block; padding: 10px 20px; background: #2563EB; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Mở Website</a>
-                            </div>
-                        `
-                    })
-                });
+                if (emails.length > 0) {
+                    console.log('Sending notification email to:', emails);
+                    await fetch('/api/send-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: emails,
+                            subject: '[Site Management] Thông báo mới',
+                            text: msg,
+                            html: `
+                                <div style="font-family: sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 12px;">
+                                    <h2 style="color: #2563EB;">🔔 Thông báo từ Site Management</h2>
+                                    <p style="font-size: 1.1rem;">${msg}</p>
+                                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                                    <p style="font-size: 0.8rem; color: #666;">Vui lòng đăng nhập vào hệ thống để xem chi tiết.</p>
+                                    <a href="${window.location.origin}" style="display: inline-block; padding: 10px 20px; background: #2563EB; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Mở Website</a>
+                                </div>
+                            `
+                        })
+                    });
+                }
+            } catch (err) {
+                console.error('Error sending notification email:', err);
             }
-        } catch (err) {
-            console.error('Error sending notification email:', err);
         }
     },
 

@@ -117,10 +117,11 @@ export const SiteService = {
         if (commentText) {
             await this.addComment(id, commentText, 'Hệ thống');
         }
-        await NotificationService.add(site.owner_id, `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id);
-        await NotificationService.add('admin-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id);
-        await NotificationService.add('bod_l1-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id);
-        if (status === 'GATE1') await NotificationService.add('project-all', `👷 Site mới cần khảo sát: ${site.name}`, id);
+        const shouldEmail = ['SUBMITTED', 'SITEPACK', 'DEAL'].includes(status);
+        await NotificationService.add(site.owner_id, `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
+        await NotificationService.add('admin-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
+        await NotificationService.add('bod_l1-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
+        if (status === 'GATE1') await NotificationService.add('project-all', `👷 Site mới cần khảo sát: ${site.name}`, id, shouldEmail);
     },
 
     async addComment(siteId, text, authorName) {
@@ -128,11 +129,11 @@ export const SiteService = {
         if (!site) return;
         await supabase.from('site_comments').insert({ site_id: siteId, author_name: authorName, text, stage: site.status });
         if (authorName !== site.owner_name) {
-            await NotificationService.add(site.owner_id, `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
+            await NotificationService.add(site.owner_id, `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId, false);
         }
-        await NotificationService.add('admin-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
-        await NotificationService.add('bod_l1-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
-        await NotificationService.add('project-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId);
+        await NotificationService.add('admin-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId, false);
+        await NotificationService.add('bod_l1-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId, false);
+        await NotificationService.add('project-all', `💬 ${authorName} vừa bình luận trong hồ sơ ${site.name}`, siteId, false);
     },
 
     async updateMPSA(siteId, value, note) {
