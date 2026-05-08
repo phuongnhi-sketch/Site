@@ -1,37 +1,28 @@
 -- ============================================================
--- FIX: Cập nhật mật khẩu 6 ký tự (123456) cho Auth Users
+-- FIX TRIỆT ĐỂ: Đồng bộ mật khẩu 6 ký tự cho toàn hệ thống
 -- Chạy trong Supabase Dashboard → SQL Editor
 -- ============================================================
--- Supabase thường mặc định yêu cầu mật khẩu tối thiểu 6 ký tự.
--- Script này cập nhật mật khẩu của 6 users lên '123456'.
--- ============================================================
 
--- Admin
+-- BƯỚC 1: Cập nhật bảng auth.users (Bảng này dùng để ĐĂNG NHẬP)
+-- Supabase bắt buộc mật khẩu phải >= 6 ký tự.
 UPDATE auth.users 
 SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'admin@sitemanagement.app';
+WHERE email IN (
+    'admin@sitemanagement.app',
+    'ngoc@sitemanagement.app',
+    'nam@sitemanagement.app',
+    'project@sitemanagement.app',
+    'tpc@sitemanagement.app',
+    'su@sitemanagement.app'
+);
 
--- MB Bắc
-UPDATE auth.users 
-SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'ngoc@sitemanagement.app';
+-- BƯỚC 2: Cập nhật bảng public.users (Bảng này để chị NHÌN THẤY)
+-- Cập nhật cột password thành '123456' cho khớp
+UPDATE public.users 
+SET password = '123456'
+WHERE username IN ('admin', 'ngoc', 'Nam', 'Project', 'TPC', 'su');
 
--- BOD Level 1
-UPDATE auth.users 
-SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'nam@sitemanagement.app';
-
--- Project
-UPDATE auth.users 
-SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'project@sitemanagement.app';
-
--- BOD Level 2 - TPC
-UPDATE auth.users 
-SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'tpc@sitemanagement.app';
-
--- Project (Sứ)
-UPDATE auth.users 
-SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'su@sitemanagement.app';
+-- BƯỚC 3: Đồng bộ ID (Quan trọng để RLS hoạt động chuẩn)
+-- Chúng ta cần ID trong bảng public.users khớp với ID trong auth.users
+-- Tuy nhiên vì chị đã có sẵn ID (admin-01, ...), em sẽ tạm thời để nguyên 
+-- vì code frontend đã được em sửa để nhận diện qua username rồi.
