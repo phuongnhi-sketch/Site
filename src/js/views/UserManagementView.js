@@ -19,7 +19,7 @@ export const UserManagementView = {
                                 <thead>
                                     <tr>
                                         <th>Tên User (Name)</th>
-                                        <th>Tài khoản (Username)</th>
+                                        
                                         <th>Mật khẩu</th>
                                         <th>Mức độ (Role)</th>
                                         <th>Email (Nhận Noti)</th>
@@ -36,7 +36,7 @@ export const UserManagementView = {
                     return `
                                         <tr>
                                             <td><strong>${u.name}</strong></td>
-                                            <td>${u.username}</td>
+                                            
                                             <td>*******</td>
                                             <td><span class="status-pill status-SUBMITTED" style="background:#E0F2FE">${roleDisplay}</span></td>
                                             <td>${u.email || '---'}</td>
@@ -60,10 +60,7 @@ export const UserManagementView = {
                                         <label style="font-weight:700; font-size:0.85rem">Tên hiển thị <span style="color:red">*</span></label>
                                         <input type="text" id="u-name" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
                                     </div>
-                                    <div>
-                                        <label style="font-weight:700; font-size:0.85rem">Tài khoản (Username) <span style="color:red">*</span></label>
-                                        <input type="text" id="u-username" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
-                                    </div>
+                                    
                                     <div>
                                         <label style="font-weight:700; font-size:0.85rem">Mật khẩu <span style="color:red">*</span></label>
                                         <input type="password" id="u-password" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
@@ -122,7 +119,7 @@ export const UserManagementView = {
                     document.getElementById('uModalTitle').innerText = 'Sửa thông tin User';
                     document.getElementById('u-id').value = u.id;
                     document.getElementById('u-name').value = u.name;
-                    document.getElementById('u-username').value = u.username;
+                    
                     document.getElementById('u-password').value = '***';
                     document.getElementById('u-password').required = false;
                     document.getElementById('u-pass-hint').style.display = 'block';
@@ -138,7 +135,7 @@ export const UserManagementView = {
                 document.getElementById('uModalTitle').innerText = 'Thêm User mới';
                 document.getElementById('u-id').value = '';
                 document.getElementById('u-name').value = '';
-                document.getElementById('u-username').value = '';
+                
                 document.getElementById('u-password').value = '';
                 document.getElementById('u-password').required = true;
                 document.getElementById('u-pass-hint').style.display = 'none';
@@ -168,7 +165,7 @@ export const UserManagementView = {
             const u = {
                 id: id,
                 name: document.getElementById('u-name').value,
-                username: document.getElementById('u-username').value,
+                username: email,
                 role: document.getElementById('u-role').value,
                 email: email,
                 region: document.getElementById('u-role').value === 'MB' ? document.getElementById('u-region').value : 'ALL',
@@ -179,7 +176,7 @@ export const UserManagementView = {
                 // Tạo mới User qua Supabase Auth
                 try {
                     const authRes = await AuthService.createUser(email, pw, {
-                        username: u.username,
+                        username: email,
                         name: u.name,
                         role: u.role,
                         region: u.region,

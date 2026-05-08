@@ -9,8 +9,8 @@ export const LoginView = {
                 <h1 style="color:var(--accent-blue); font-family:var(--font-heading); font-size:2.2rem; margin-bottom:1.5rem">Site Management Master</h1>
                 <form onsubmit="event.preventDefault(); window.doLogin();" style="display:flex; flex-direction:column; gap:15px; text-align:left;">
                     <div>
-                        <label style="font-size:0.8rem; font-weight:700">Tài khoản hoặc Email</label>
-                        <input type="text" id="login-user" placeholder="VD: admin" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-top:5px" required>
+                        <label style="font-size:0.8rem; font-weight:700">Email Đăng nhập</label>
+                        <input type="text" id="login-user" placeholder="Nhập Email (VD: admin@system.com hoặc admin)" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-top:5px" required>
                     </div>
                     <div>
                         <label style="font-size:0.8rem; font-weight:700">Mật khẩu</label>

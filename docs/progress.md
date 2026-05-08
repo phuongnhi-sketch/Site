@@ -38,8 +38,9 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 3. **[✅ XONG] Phase 6.1b**: Chạy SQL trên Supabase + tạo Storage bucket (Nhi đã làm 07/05).
 4. **[✅ XONG] Phase 6.3**: Tách `demo.html` thành project Vite (CSS + Views + Router).
 5. **[✅ XONG] Phase 6.4**: Test local & Đồng bộ giao diện (UI/UX Parity).
-6. **[⏳ ĐANG LÀM] Phase 6.5**: Deploy lên Vercel.
-7. **Phase 6.6**: Kiểm thử & hoàn thiện.
+6. **[✅ XONG] Phase 6.5**: Deploy lên Vercel.
+7. **[✅ XONG] Phase 6.6**: Tích hợp UI tạo User tự động lên Supabase Auth ngay trong Vercel.
+8. **Phase 6.7**: Kiểm thử & hoàn thiện.
 
 ## 6. Yêu cầu Phase Backend (Future Requirements)
 *Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*
@@ -55,29 +56,32 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
         - Sửa lỗi import path và xóa thư mục `src/js/services` dư thừa.
 
 - **2026-05-08: Fix Danh sách Site trống & Chuyển đổi Supabase Auth (v3.3.0) ✅**
-    - **Vấn đề**: Danh sách Site trống do RLS chặn `anon` và sai lệch schema code/DB.
+    - **Vấn đề**: Danh sách Site trống do RLS chặn `anon` và sai lệch schema code/DB. Quá trình tạo user bằng SQL bị vướng Trigger cũ và Foreign Key.
     - **Giải pháp dứt điểm**:
         - ✅ Chuyển toàn bộ hệ thống sang **Supabase Auth** (Production-safe).
-        - ✅ Sửa lỗi schema: Code gọi `profiles` đã được đổi về bảng `users` thực tế của Nhi.
         - ✅ Đồng bộ tên cột: `thumb` -> `thumb_url`, `site_mpsa_history` -> `mpsa_history`.
-        - ✅ Cài đặt Trigger trên Supabase: Tự động đồng bộ Auth User -> Table Users.
+        - ✅ Đổi domain xác thực nội bộ thành `@system.com` để tránh xung đột dữ liệu cũ.
         - ✅ Cập nhật `LoginView`: Chỉ hiển thị các Quick Demo buttons có trong database thật.
-    - **Kết quả**: App hoạt động bảo mật, không cần dùng anon policy nguy hiểm. Danh sách Site đã có thể truy xuất bình thường qua `authenticated` session.
-    - **Bàn giao**: Nhi đã chạy SQL `create_auth_users.sql` thành công. App đã sẵn sàng để push lên Vercel.
+        - ✅ Dùng API Script khởi tạo tự động toàn bộ tài khoản an toàn không cần chạy SQL tay.
+    - **Kết quả**: App hoạt động bảo mật. Đăng nhập thành công trên Vercel. Danh sách Site đã có thể truy xuất bình thường qua `authenticated` session.
+    - **Bàn giao**: Đã deploy thành công lên Vercel. Ghi chú quản lý Auth lưu tại `docs/auth_guide.md`.
 
 ## 8. Hướng dẫn Đăng nhập Demo (Credentials)
 
 > [!IMPORTANT]
-> **Mật khẩu mới**: `123456` (Do Supabase yêu cầu tối thiểu 6 ký tự).
+> **Mật khẩu mới**: `123456` (Do Supabase yêu cầu tối thiểu 6 ký tự). Đuôi email nội bộ đã đổi thành `@system.com`.
 
 | Tài khoản | Username | Password | Email |
 |-----------|----------|----------|-------|
-| Admin | admin | 123456 | admin@sitemanagement.app |
-| MB Bắc | ngoc | 123456 | ngoc@sitemanagement.app |
-| BOD | nam | 123456 | nam@sitemanagement.app |
-| BOD TPC | tpc | 123456 | tpc@sitemanagement.app |
-| Project | project | 123456 | project@sitemanagement.app |
+| Admin | admin | 123456 | admin@system.com |
+| MB Bắc | ngoc | 123456 | ngoc@system.com |
+| BOD | nam | 123456 | nam@system.com |
+| BOD TPC | tpc | 123456 | tpc@system.com |
+| Project | project | 123456 | project@system.com |
+| BOD SW | su | 123456 | su@system.com |
 
-*Lưu ý: Bạn có thể dùng Username (vd: admin) hoặc Email đầy đủ để đăng nhập.*
+*Lưu ý: Chị chỉ cần nhập Username (vd: admin) hoặc chọn nút Quick Demo để đăng nhập.*
+
+
 
 
