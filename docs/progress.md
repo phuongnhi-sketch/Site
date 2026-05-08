@@ -66,12 +66,18 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
     - **Bàn giao**: Nhi đã chạy SQL `create_auth_users.sql` thành công. App đã sẵn sàng để push lên Vercel.
 
 ## 8. Hướng dẫn Đăng nhập Demo (Credentials)
+
+> [!IMPORTANT]
+> **Mật khẩu mới**: `123456` (Do Supabase yêu cầu tối thiểu 6 ký tự).
+
 | Tài khoản | Username | Password | Email |
 |-----------|----------|----------|-------|
-| Admin | admin | 123 | admin@sitemanagement.app |
-| MB Bắc | ngoc | 123 | ngoc@sitemanagement.app |
-| BOD | Nam | 123 | nam@sitemanagement.app |
-| BOD TPC | TPC | 123 | tpc@sitemanagement.app |
-| Project | Project | 123 | project@sitemanagement.app |
+| Admin | admin | 123456 | admin@sitemanagement.app |
+| MB Bắc | ngoc | 123456 | ngoc@sitemanagement.app |
+| BOD | nam | 123456 | nam@sitemanagement.app |
+| BOD TPC | tpc | 123456 | tpc@sitemanagement.app |
+| Project | project | 123456 | project@sitemanagement.app |
+
+*Lưu ý: Bạn có thể dùng Username (vd: admin) hoặc Email đầy đủ để đăng nhập.*
 
 

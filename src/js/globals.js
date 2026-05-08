@@ -5,16 +5,6 @@ import { UserService } from '../services/userService.js';
 import { supabase } from '../services/supabaseClient.js';
 import { store } from './store.js';
 
-// Mapping Quick Demo buttons → email (khớp với auth users đã tạo)
-const DEMO_EMAIL_MAP = {
-    'ADMIN-ALL-ALL': 'admin@sitemanagement.app',
-    'MB-NORTH-ALL': 'ngoc@sitemanagement.app',
-    'BOD_L1-ALL-ALL': 'nam@sitemanagement.app',
-    'BOD_L2-ALL-TPC': 'tpc@sitemanagement.app',
-    'PROJECT-ALL-ALL': 'project@sitemanagement.app',
-};
-const DEMO_PASSWORD = '123';
-
 window.STATUS_LABELS = STATUS_LABELS;
 
         // --- LIGHTBOX LOGIC ---
@@ -394,13 +384,19 @@ window.STATUS_LABELS = STATUS_LABELS;
             window.printSelected();
         };
 
-        window.login = async (role, region, brand = 'ALL') => {
-            const key = `${role}-${region}-${brand}`;
-            const email = DEMO_EMAIL_MAP[key];
-            if (!email) { alert('Chưa có tài khoản demo cho vai trò này!'); return; }
+        window.doLogin = async () => {
+            const uInput = document.getElementById('login-user').value.trim();
+            const pInput = document.getElementById('login-pass').value;
+            
+            // Map username → email (lowercase để khớp với Supabase Auth)
+            let email = uInput.includes('@') ? uInput.toLowerCase() : (uInput.toLowerCase() + '@sitemanagement.app');
+            
+            console.log('Attempting login for:', email);
+            
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password: DEMO_PASSWORD });
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password: pInput });
                 if (error) throw error;
+                
                 // Lấy metadata từ Supabase Auth user (trigger đã populate từ bảng users)
                 const meta = data.user.user_metadata || {};
                 const uObj = {
@@ -411,39 +407,15 @@ window.STATUS_LABELS = STATUS_LABELS;
                     brand: meta.brand || 'ALL',
                     email: data.user.email,
                 };
+                
                 localStorage.setItem('site_poc_user', JSON.stringify(uObj));
                 store.setState({ user: uObj });
+                
+                console.log('Login successful:', uObj.name);
                 location.href = '#dashboard';
                 location.reload();
             } catch (err) {
                 console.error('Login error:', err);
-                alert('Đăng nhập thất bại: ' + (err.message || err));
-            }
-        };
-
-        window.doLogin = async () => {
-            const uInput = document.getElementById('login-user').value.trim();
-            const pInput = document.getElementById('login-pass').value;
-            // Map username → email: thêm @sitemanagement.app nếu chưa có @
-            let email = uInput.includes('@') ? uInput : uInput + '@sitemanagement.app';
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password: pInput });
-                if (error) throw error;
-                const meta = data.user.user_metadata || {};
-                const uObj = {
-                    id: meta.username || data.user.id,
-                    name: meta.name || email,
-                    role: meta.role || 'MB',
-                    region: meta.region || 'ALL',
-                    brand: meta.brand || 'ALL',
-                    email: data.user.email,
-                };
-                localStorage.setItem('site_poc_user', JSON.stringify(uObj));
-                store.setState({ user: uObj });
-                location.href = '#dashboard';
-                location.reload();
-            } catch (err) {
-                console.error('Login error:', err);
-                alert('Sai tài khoản hoặc mật khẩu!');
+                alert('Sai tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.');
             }
         };
