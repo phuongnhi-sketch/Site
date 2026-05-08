@@ -264,7 +264,10 @@ window.STATUS_LABELS = STATUS_LABELS;
                         row.push('"' + val.toString().replace(/"/g, '""') + '"');
                     });
                     if (incQA) {
-                        const comments = (s.comments || []).map(c => `[${new Date(c.date).toLocaleDateString()} ${c.author}]: ${c.text}`).join(' | ');
+                        const comments = (s.comments || []).map(c => {
+                            const d = c.created_at ? new Date(c.created_at).toLocaleDateString() : '---';
+                            return `[${d} ${c.author_name || '---'}]: ${c.text}`;
+                        }).join(' | ');
                         row.push('"' + comments.replace(/"/g, '""') + '"');
                     }
                     return row.join(',') + '\n';
@@ -312,7 +315,8 @@ window.STATUS_LABELS = STATUS_LABELS;
 
             const allSites = await SiteService.getSites();
             const fields = await FormService.getFields();
-            const incQA = window.siteFilters?.includeQA;
+            // Force include QA history if printing a single site from detail view
+            const incQA = (forcedIds && forcedIds.length === 1) ? true : !!window.siteFilters?.includeQA;
 
             let html = '<html><head><title>Báo cáo hồ sơ</title>';
             html += '<style>' +
@@ -388,7 +392,8 @@ window.STATUS_LABELS = STATUS_LABELS;
                 if (incQA && site.comments && site.comments.length > 0) {
                     html += '<div class="ver-title" style="color:#666; border-color:#ccc">Lịch sử thảo luận</div>';
                     site.comments.forEach(c => {
-                        html += `<div style="margin-bottom:8px;padding:10px;background:#f9f9f9;border-radius:8px;font-size:11px; border-left:3px solid #eee"><strong>${c.author}</strong>: ${c.text}</div>`;
+                        const d = c.created_at ? new Date(c.created_at).toLocaleString() : '---';
+                        html += `<div style="margin-bottom:8px;padding:10px;background:#f9f9f9;border-radius:8px;font-size:11px; border-left:3px solid #eee"><strong>${c.author_name || '---'}</strong> <small style="color:#999">(${d})</small>:<br>${c.text}</div>`;
                     });
                 }
                 html += '</div>';
