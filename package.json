@@ -15,7 +15,8 @@
   "author": "Nhi",
   "license": "ISC",
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.9"
+    "@supabase/supabase-js": "^2.49.9",
+    "nodemailer": "^6.10.0"
   },
   "devDependencies": {
     "vite": "^6.3.5"
