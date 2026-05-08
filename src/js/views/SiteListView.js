@@ -46,10 +46,10 @@ export const SiteListView = {
             document.querySelectorAll('.site-checkbox').forEach(cb => cb.checked = master.checked);
         };
 
-        window.printSelected = () => {
+        window.doPrintList = () => {
             const selected = Array.from(document.querySelectorAll('.site-checkbox:checked')).map(cb => cb.dataset.id);
             if (selected.length === 0) return alert('Vui lòng chọn ít nhất 1 mặt bằng!');
-            window.printSites(selected);
+            window.printSelected(selected);
         };
 
         window.exportSelected = async () => {
@@ -76,7 +76,7 @@ export const SiteListView = {
                             </div>
                         </div>
                         <button class="btn-ghost" style="padding:10px 20px; font-size:0.85rem" onclick="window.exportSelected()">📊 Xuất Excel</button>
-                        <button class="btn-ghost" style="padding:10px 20px; font-size:0.85rem; background:#EFF6FF; border-color:#DBEAFE" onclick="window.printSelected()">🖨️ In PDF</button>
+                        <button class="btn-ghost" style="padding:10px 20px; font-size:0.85rem; background:#EFF6FF; border-color:#DBEAFE" onclick="window.doPrintList()">🖨️ In PDF</button>
                         ${(u.role === 'ADMIN' || u.role === 'MB') ? `<button class="btn-primary" style="padding:10px 25px; font-size:0.85rem" onclick="location.hash='#create'">+ Thêm MB</button>` : ''}
                     </div>
                 </div>

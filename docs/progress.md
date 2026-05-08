@@ -41,7 +41,8 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 6. **[✅ XONG] Phase 6.5**: Deploy lên Vercel.
 7. **[✅ XONG] Phase 6.6**: Tích hợp UI tạo User tự động lên Supabase Auth ngay trong Vercel.
 8. **[✅ XONG] Phase 6.7**: Sửa lỗi đăng nhập User mới, Gộp Username vào Email, và Fix lỗi Xuất PDF chi tiết.
-9. **Phase 6.8**: Đóng gói và Bàn giao dự án.
+9. **Phase 6.8**: Tích hợp & Kết nối hệ thống Thông báo (Notifications).
+10. **Phase 6.9**: Kiểm thử, Đóng gói và Bàn giao dự án.
 
 ## 6. Yêu cầu Phase Backend (Future Requirements)
 *Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*
