@@ -291,7 +291,12 @@ window.STATUS_LABELS = STATUS_LABELS;
         };
 
         window.printSelected = async (forcedIds = null) => {
-            const win = window.open('about:blank', '_blank');
+            const w = 1000;
+            const h = 800;
+            const left = (window.screen.width / 2) - (w / 2);
+            const top = (window.screen.height / 2) - (h / 2);
+            
+            const win = window.open('', '_blank', `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`);
             if (!win) return alert('LỖI: Trình duyệt đã chặn cửa sổ bật lên (Popup). Vui lòng nhìn lên thanh địa chỉ trình duyệt, chọn "Luôn cho phép cửa sổ bật lên" rồi bấm In lại nhé!');
             
             win.document.write('<html><head><title>Đang chuẩn bị báo cáo...</title><style>body{display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;color:#666;}</style></head><body><div><h2 style="margin-bottom:10px">⌛ Đang nạp dữ liệu báo cáo...</h2><p>Vui lòng đợi trong giây lát.</p></div></body></html>');
@@ -321,9 +326,12 @@ window.STATUS_LABELS = STATUS_LABELS;
                 html += `<div class="header"><h2>#${index + 1}. ${site.name}</h2><span class="tag">${site.code}</span></div>`;
                 html += `<img src="${site.thumb}" class="thumb-img">`;
 
-                const renderData = (data, sectionTitle) => {
+                const renderData = (data, sectionTitle, isV2 = false) => {
+                    const color = isV2 ? '#2563EB' : '#475569';
+                    const bgColor = isV2 ? '#EFF6FF' : '#F1F5F9';
                     const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN') || (site.status === 'REJECTED' && u.role !== 'ADMIN'));
-                    html += `<h3>${sectionTitle}</h3><div class="grid">`;
+                    
+                    html += `<h3 style="color:${color}; background:${bgColor}; padding:8px 12px; border-radius:8px; display:inline-block; border-left:4px solid ${color}; margin-top:20px; margin-bottom:10px; font-size:0.85rem; font-weight:800">${sectionTitle}</h3><div class="grid">`;
                     fields.forEach(f => {
                         let v = data[f.id] || '';
                         if (isMasked && (f.id === 'f2_1' || f.id === 'f2_2' || f.id === 'f7')) v = '*******';
@@ -339,21 +347,21 @@ window.STATUS_LABELS = STATUS_LABELS;
 
                 const verOpt = window.siteFilters?.exportVer || 'BOTH';
                 if (verOpt === 'BOTH') {
-                    renderData(site.answers || {}, 'PHIÊN BẢN GỐC (V1)');
-                    if (site.v2_data) renderData(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)');
+                    renderData(site.answers || {}, 'PHIÊN BẢN GỐC (V1)', false);
+                    if (site.v2_data) renderData(site.v2_data, 'PHIÊN BẢN CHỐT DEAL (V2)', true);
                 } else {
                     const data = site.v2_data || site.answers || {};
-                    renderData(data, site.v2_data ? 'PHIÊN BẢN CHỐT DEAL (V2)' : 'PHIÊN BẢN GỐC (V1)');
+                    renderData(data, site.v2_data ? 'PHIÊN BẢN CHỐT DEAL (V2)' : 'PHIÊN BẢN GỐC (V1)', !!site.v2_data);
                 }
 
                 if (site.inner_images && site.inner_images.length > 0) {
-                    html += '<h3>Hình ảnh chi tiết</h3><div class="images-grid">';
+                    html += '<h3 style="color:#475569; border-bottom:1px solid #eee; padding-bottom:5px">Hình ảnh chi tiết</h3><div class="images-grid">';
                     site.inner_images.forEach(img => html += `<img src="${img}">`);
                     html += '</div>';
                 }
 
                 if (incQA && site.comments && site.comments.length > 0) {
-                    html += '<h3>Lịch sử thảo luận</h3>';
+                    html += '<h3 style="color:#475569; border-bottom:1px solid #eee; padding-bottom:5px">Lịch sử thảo luận</h3>';
                     site.comments.forEach(c => {
                         html += `<div style="margin-bottom:5px;padding:6px;background:#f9f9f9;border-radius:4px;font-size:11px"><strong>${c.author}</strong>: ${c.text}</div>`;
                     });
@@ -376,7 +384,7 @@ window.STATUS_LABELS = STATUS_LABELS;
             });
 
             await Promise.all(promises);
-            setTimeout(() => { win.print(); }, 300);
+            setTimeout(() => { win.print(); }, 500);
         };
 
         window.printDetail = (id) => {
