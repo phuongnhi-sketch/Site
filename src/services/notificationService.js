@@ -50,7 +50,8 @@ export const NotificationService = {
 
                 if (emails.length > 0) {
                     console.log('Sending notification email to:', emails);
-                    await fetch('/api/send-email', {
+                    const apiUrl = window.location.origin + '/api/send-email';
+                    const res = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -68,6 +69,8 @@ export const NotificationService = {
                             `
                         })
                     });
+                    const result = await res.json();
+                    console.log('Email API response:', result);
                 }
             } catch (err) {
                 console.error('Error sending notification email:', err);
