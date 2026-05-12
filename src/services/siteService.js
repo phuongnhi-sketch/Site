@@ -39,8 +39,16 @@ export const SiteService = {
             console.error('Error fetching sites:', error);
             return [];
         }
-        // Map thumb_url → thumb cho tương thích UI legacy
-        return (data || []).map(s => ({ ...s, thumb: s.thumb_url || s.thumb }));
+        // Map thumb_url → thumb & comment fields cho tương thích UI legacy
+        return (data || []).map(s => ({ 
+            ...s, 
+            thumb: s.thumb_url || s.thumb,
+            comments: (s.comments || []).map(c => ({
+                ...c,
+                author: c.author_name || c.author,
+                date: c.created_at || c.date
+            }))
+        }));
     },
 
     async getSiteById(id) {
@@ -57,8 +65,15 @@ export const SiteService = {
             console.error('Error fetching site:', error);
             return null;
         }
-        // Map thumb_url → thumb cho tương thích UI legacy
-        if (data) data.thumb = data.thumb_url || data.thumb;
+        // Map thumb_url → thumb & comment fields cho tương thích UI legacy
+        if (data) {
+            data.thumb = data.thumb_url || data.thumb;
+            data.comments = (data.comments || []).map(c => ({
+                ...c,
+                author: c.author_name || c.author,
+                date: c.created_at || c.date
+            }));
+        }
         return data;
     },
 

@@ -1,2 +1,2 @@
 Write-Host "AI Command Triggered: .\UpdateProject"
-Write-Host "Em đang thực hiện đồng bộ lại toàn bộ tài liệu dự án..."
+Write-Host "Em đang cập nhật thông tin dự án..."

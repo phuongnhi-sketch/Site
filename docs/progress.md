@@ -3,9 +3,9 @@
 Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án Site Management Web (POC).
 
 ## 1. Trạng thái hiện tại
-- **Phase**: 6 - Triển khai Supabase + Vercel (Web thật)
-- **Status**: **Đang lên kế hoạch triển khai lên web có database thật.**
-- **Cột mốc**: Chuyển đổi từ POC (localStorage) sang Supabase (PostgreSQL + Auth + Storage) và deploy lên Vercel.
+- **Phase**: 6 - Triển khai Supabase + Vercel (Web thật) - **ĐÃ HOÀN THÀNH**
+- **Status**: **Đã triển khai thành công lên Vercel và Supabase.**
+- **Cột mốc**: Đã chuyển đổi hoàn toàn từ POC (localStorage) sang Supabase (PostgreSQL + Auth + Storage) và deploy link live trên Vercel.
 
 ## 2. Các mốc quan trọng (Milestones)
 - [x] Thiết lập Framework Mode A (2026-04-22).
