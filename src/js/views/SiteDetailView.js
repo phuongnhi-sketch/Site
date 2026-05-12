@@ -124,7 +124,7 @@ export const DetailView = {
                             ` : ''}
                         </div>
 
-                         ${(u.role === 'ADMIN') ? `
+                         ${(u.role === 'ADMIN' || u.role === 'MB') ? `
                             <div style="padding:1rem; background:#EFF6FF; border-radius:14px; margin-bottom:1.2rem">
                                 <label style="font-size:0.7rem; font-weight:700; display:block; margin-bottom:0.8rem">CẬP NHẬT TRẠNG THÁI</label>
                                 <div style="display:flex; flex-wrap:wrap; gap:6px">
