@@ -54,9 +54,15 @@ export const NotificationService = {
                                 const { data: site } = await supabase.from('sites').select('region, brand').eq('id', siteId).single();
                                 if (site) {
                                     emails = users.filter(u => {
-                                        const regionMatch = (u.region === 'ALL' || u.region === site.region);
-                                        const brandMatch = (u.brand === 'ALL' || u.brand === site.brand);
-                                        return regionMatch && brandMatch;
+                                        if (targetRole === 'MB' || targetRole === 'PROJECT') {
+                                            // MB & Project: Chỉ lọc theo Vùng miền
+                                            return (u.region === 'ALL' || u.region === site.region);
+                                        }
+                                        if (targetRole === 'BOD_L2') {
+                                            // BOD L2: Chỉ lọc theo Thương hiệu
+                                            return (u.brand === 'ALL' || u.brand === site.brand);
+                                        }
+                                        return true;
                                     }).map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
                                 } else {
                                     emails = users.map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
