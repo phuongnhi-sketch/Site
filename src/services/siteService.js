@@ -151,6 +151,9 @@ export const SiteService = {
         await supabase.from('site_comments').insert({ site_id: siteId, author_name: authorName, text, stage: site.status });
         
         // Bình luận thì gửi thông báo chuông (không gửi mail) cho tất cả bên liên quan
+        // BỎ QUA thông báo nếu là 'Hệ thống' bình luận (để tránh trùng lặp với thông báo chuyển trạng thái)
+        if (authorName === 'Hệ thống') return;
+
         if (authorName !== site.owner_name) {
             await NotificationService.add(site.owner_id, `💬 ${authorName} bình luận: ${text.substring(0, 50)}...`, siteId, false);
         }
