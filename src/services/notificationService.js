@@ -40,12 +40,15 @@ export const NotificationService = {
                     const targetRole = roleMap[userId];
                     if (targetRole) {
                         const { data } = await supabase.from('users').select('email').eq('role', targetRole);
-                        emails = (data || []).map(u => u.email).filter(e => !!e);
+                        // Lọc bỏ email trống và email giả đuôi @system.com
+                        emails = (data || []).map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
                     }
                 } else {
                     // Lấy email của 1 user cụ thể
                     const { data } = await supabase.from('users').select('email').eq('id', userId).single();
-                    if (data && data.email) emails = [data.email];
+                    if (data && data.email && !data.email.endsWith('@system.com')) {
+                        emails = [data.email];
+                    }
                 }
 
                 if (emails.length > 0) {
