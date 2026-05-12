@@ -39,18 +39,18 @@ export const UserManagementView = {
                                             <td>${u.email || '---'}</td>
                                             <td>
                                                 <span class="status-pill" style="background:${(() => {
-                                                    if (u.role === 'ADMIN') return '#F3E8FF';
-                                                    if (u.role === 'BOD_L1' || u.role === 'BOD_L2') return '#DBEAFE';
-                                                    if (u.role === 'PROJECT') return '#DCFCE7';
-                                                    if (u.role === 'MB') return '#FEF3C7';
-                                                    return '#F1F5F9';
-                                                })()}; color:${(() => {
-                                                    if (u.role === 'ADMIN') return '#7E22CE';
-                                                    if (u.role === 'BOD_L1' || u.role === 'BOD_L2') return '#1E40AF';
-                                                    if (u.role === 'PROJECT') return '#15803D';
-                                                    if (u.role === 'MB') return '#B45309';
-                                                    return '#475569';
-                                                })()}">${roleDisplay}</span>
+                    if (u.role === 'ADMIN') return '#F3E8FF';
+                    if (u.role === 'BOD_L1' || u.role === 'BOD_L2') return '#DBEAFE';
+                    if (u.role === 'PROJECT') return '#DCFCE7';
+                    if (u.role === 'MB') return '#FEF3C7';
+                    return '#F1F5F9';
+                })()}; color:${(() => {
+                    if (u.role === 'ADMIN') return '#7E22CE';
+                    if (u.role === 'BOD_L1' || u.role === 'BOD_L2') return '#1E40AF';
+                    if (u.role === 'PROJECT') return '#15803D';
+                    if (u.role === 'MB') return '#B45309';
+                    return '#475569';
+                })()}">${roleDisplay}</span>
                                             </td>
                                             <td>
                                                 <span class="status-pill" style="background:${u.is_active !== false ? '#DCFCE7' : '#FEE2E2'}; color:${u.is_active !== false ? '#15803D' : '#B91C1C'}">
@@ -100,7 +100,7 @@ export const UserManagementView = {
                                         <label style="font-weight:700; font-size:0.85rem">Mức độ sử dụng (Role) <span style="color:red">*</span></label>
                                         <select id="u-role" onchange="window.onRoleChange()" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:5px">
                                             <option value="ADMIN">ADMIN</option>
-                                            <option value="MB">Mặt bằng (MB)</option>
+                                            <option value="MB">Mặt bằng (Site)</option>
                                             <option value="PROJECT">Project</option>
                                             <option value="BOD_L1">BOD</option>
                                             <option value="BOD_L2">Brand</option>
