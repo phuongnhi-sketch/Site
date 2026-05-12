@@ -10,9 +10,19 @@ Tài liệu này quy định chi tiết về quyền hạn của từng loại t
 | :--- | :--- | :--- | :--- |
 | **ADMIN** | Quản trị viên | **Tất cả** (Toàn hệ thống) | Full quyền (Sửa/Xóa/Mở khóa/Duyệt/Quản lý User) |
 | **BOD L1** | Ban giám đốc | **Tất cả** | Xem báo cáo, nhận thông báo, thảo luận |
-| **BOD L2** | Quản lý Brand | Theo **Brand** được phân công | Xem báo cáo, nhận thông báo, thảo luận |
-| **PROJECT** | Team Khảo sát | **Tất cả** | Xem hồ sơ, nhận yêu cầu khảo sát, cập nhật khảo sát |
-| **MB (Site)** | Team Tìm mặt bằng | Theo **Vùng miền** (Bắc/Nam) | Tạo mới hồ sơ, sửa hồ sơ mình tạo, cập nhật trạng thái |
+| **BOD L2** | Quản lý Brand | Theo **Brand** được phân công | Xem báo cáo, nhận thông báo, thảo luận. **Đặc biệt**: Được xem hồ sơ của tất cả các Brand khác nếu Site đó đã ở trạng thái **Complete** hoặc **Rejected**. |
+| **PROJECT** | Team Khảo sát | **Tất cả** | Xem hồ sơ, nhận yêu cầu khảo sát, cập nhật khảo sát. **Lưu ý**: Luôn bị ẩn thông tin về giá thuê (`*******`). |
+| **MB (Site)** | Team Tìm mặt bằng | Theo **Vùng miền** (Bắc/Nam) | Tạo mới hồ sơ, sửa hồ sơ mình tạo, cập nhật trạng thái. |
+
+---
+
+## 2. Quy tắc Ẩn thông tin nhạy cảm (Data Masking)
+
+Để đảm bảo bảo mật về chi phí và tài chính, hệ thống áp dụng cơ chế ẩn giá thuê (`*******`) như sau:
+
+*   **Role PROJECT**: Không bao giờ thấy giá thuê (Ẩn 100% thời gian).
+*   **Khi hồ sơ Hoàn tất (Complete)**: Toàn bộ các Role (MB, BOD L1, BOD L2) sẽ không còn thấy giá thuê nữa. Chỉ duy nhất **ADMIN** có quyền xem giá ở giai đoạn này.
+*   **Trong Báo cáo Excel/PDF**: Quy tắc ẩn giá cũng được áp dụng tương tự như trên giao diện Web.
 
 ---
 
