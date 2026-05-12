@@ -360,13 +360,24 @@ window.STATUS_LABELS = STATUS_LABELS;
                 html += `<div class="${index < selectedIds.length - 1 ? 'page-break' : ''}">`;
                 html += `<div class="header"><h2>#${index + 1}. ${site.name}</h2><span class="code">Mã: ${site.code}</span></div>`;
                 
+                const latestData = site.v2_data || site.answers || {};
+                const pTax = parseFloat((latestData['f2_2'] || '').toString().replace(/,/g, '')) || 0;
+                const mpsa = parseFloat(site.current_mpsa) || 0;
+                let ratioHtml = '';
+                const isMasked = (u.role === 'PROJECT' || (site.status === 'FINISH' && u.role !== 'ADMIN'));
+                
+                if (!isMasked && mpsa > 0 && pTax > 0) {
+                    const ratio = (pTax / mpsa * 100).toFixed(1) + '%';
+                    ratioHtml = `<div style="font-size:0.8rem; font-weight:700; color:#059669; background:#ECFDF5; padding:4px 8px; border-radius:6px; margin-top:10px; display:inline-block; border: 1px solid #A7F3D0">📈 Thuế / MPSA: ${ratio}</div>`;
+                }
+
                 html += `
                 <div style="display:flex; gap:30px; align-items:flex-start; margin-bottom:20px">
                     <img src="${site.thumb}" class="thumb-img">
                     <div class="sidebar-box">
-                        <h3>Phê duyệt & Thảo luận</h3>
                         <label>MPSA ESTIMATE</label>
-                        <div class="mpsa-val">${site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---'}</div>
+                        <div class="mpsa-val">${isMasked ? '*******' : (site.current_mpsa ? parseFloat(site.current_mpsa).toLocaleString('en-US') + ' đ' : '---')}</div>
+                        ${ratioHtml}
                     </div>
                 </div>`;
 
