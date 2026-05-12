@@ -49,7 +49,7 @@ export const NotificationService = {
                         const { data: users } = await query;
                         
                         if (users && users.length > 0) {
-                            if (siteId && (targetRole === 'MB' || targetRole === 'BOD_L2' || targetRole === 'PROJECT')) {
+                            if (siteId && (targetRole === 'MB' || targetRole === 'BOD_L2')) {
                                 // Lấy thông tin site để lọc vùng miền/brand
                                 const { data: site } = await supabase.from('sites').select('region, brand').eq('id', siteId).single();
                                 if (site) {
