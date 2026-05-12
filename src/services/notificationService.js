@@ -45,9 +45,27 @@ export const NotificationService = {
                     };
                     const targetRole = roleMap[userId];
                     if (targetRole) {
-                        const { data } = await supabase.from('users').select('email').eq('role', targetRole);
-                        // Lọc bỏ email trống và email giả đuôi @system.com
-                        emails = (data || []).map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
+                        let query = supabase.from('users').select('email, region, brand').eq('role', targetRole).eq('is_active', true);
+                        const { data: users } = await query;
+                        
+                        if (users && users.length > 0) {
+                            if (siteId && (targetRole === 'MB' || targetRole === 'BOD_L2' || targetRole === 'PROJECT')) {
+                                // Lấy thông tin site để lọc vùng miền/brand
+                                const { data: site } = await supabase.from('sites').select('region, brand').eq('id', siteId).single();
+                                if (site) {
+                                    emails = users.filter(u => {
+                                        const regionMatch = (u.region === 'ALL' || u.region === site.region);
+                                        const brandMatch = (u.brand === 'ALL' || u.brand === site.brand);
+                                        return regionMatch && brandMatch;
+                                    }).map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
+                                } else {
+                                    emails = users.map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
+                                }
+                            } else {
+                                // Admin/BOD L1 nhận tất cả
+                                emails = users.map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
+                            }
+                        }
                     }
                 } else {
                     // Lấy email của 1 user cụ thể
