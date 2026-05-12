@@ -132,7 +132,7 @@ export const SiteService = {
         if (commentText) {
             await this.addComment(id, commentText, 'Hệ thống');
         }
-        const shouldEmail = ['SUBMITTED', 'SITEPACK', 'DEAL'].includes(status);
+        const shouldEmail = ['SUBMITTED', 'GATE2', 'GATE3'].includes(status);
         
         // Luôn thông báo cho Chủ hồ sơ (MB), Admin và BOD
         await NotificationService.add(site.owner_id, `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
