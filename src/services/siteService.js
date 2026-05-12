@@ -138,6 +138,7 @@ export const SiteService = {
         await NotificationService.add(site.owner_id, `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
         await NotificationService.add('admin-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
         await NotificationService.add('bod_l1-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
+        await NotificationService.add('bod_l2-all', `🔄 Hồ sơ ${site.name} chuyển sang: ${STATUS_LABELS[status]}`, id, shouldEmail);
         
         // Nếu chuyển sang bước Khảo sát (SURVEY), thông báo thêm cho Team Project
         if (status === 'SURVEY') {

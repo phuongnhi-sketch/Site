@@ -36,7 +36,13 @@ export const NotificationService = {
                 
                 if (userId.includes('-all')) {
                     // Lấy email của tất cả user thuộc role đó
-                    const roleMap = { 'admin-all': 'ADMIN', 'project-all': 'PROJECT', 'bod_l1-all': 'BOD_L1' };
+                    const roleMap = { 
+                        'admin-all': 'ADMIN', 
+                        'project-all': 'PROJECT', 
+                        'bod_l1-all': 'BOD_L1',
+                        'bod_l2-all': 'BOD_L2',
+                        'mb-all': 'MB'
+                    };
                     const targetRole = roleMap[userId];
                     if (targetRole) {
                         const { data } = await supabase.from('users').select('email').eq('role', targetRole);
