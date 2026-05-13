@@ -35,8 +35,7 @@ export const CreateSiteView = {
             }
             if (ex && ex.inner_images && ex.inner_images.length > 0) {
                 window.currentInnerImages = [...ex.inner_images];
-                const prv = document.getElementById('multi-preview');
-                if (prv) prv.innerHTML = window.currentInnerImages.map(img => `<img src="${img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;">`).join('');
+                window.renderMultiPreview();
             } else {
                 window.currentInnerImages = [];
             }

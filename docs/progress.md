@@ -47,6 +47,7 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
 ## 6. Yêu cầu Phase Backend (Future Requirements)
 *Các tính năng này đã được ghi nhận và sẽ triển khai khi xây dựng Backend thực tế:*
 - **Auto Email Notifications**: Tích hợp gửi email thông báo tự động (Nodemailer / SendGrid / Amazon SES) tới địa chỉ email của User khi có Noti mới.
+- **Zalo Notifications**: Tích hợp gửi thông báo qua Zalo OA hoặc Zalo ZNS để tăng tốc độ phản hồi.
 ## 7. Nhật ký Khắc phục lỗi (Incident Log)
 - **2026-05-07: Lỗi Build Vercel & Sync Giao diện v3.2.1**
     - **Vấn đề**: Bản cập nhật v3.2.0 bị lỗi build trên Vercel do sai đường dẫn import Supabase và tồn tại file rác. Ngoài ra, giao diện Dashboard bị Việt hóa không đúng ý người dùng.
@@ -57,16 +58,14 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
         - Tối ưu PDF Engine: Mở cửa sổ ngay lập tức và đợi ảnh decode xong mới in.
         - Sửa lỗi import path và xóa thư mục `src/js/services` dư thừa.
 
-- **2026-05-08: Fix Danh sách Site trống & Chuyển đổi Supabase Auth (v3.3.0) ✅**
-    - **Vấn đề**: Danh sách Site trống do RLS chặn `anon` và sai lệch schema code/DB. Quá trình tạo user bằng SQL bị vướng Trigger cũ và Foreign Key.
-    - **Giải pháp dứt điểm**:
-        - ✅ Chuyển toàn bộ hệ thống sang **Supabase Auth** (Production-safe).
-        - ✅ Đồng bộ tên cột: `thumb` -> `thumb_url`, `site_mpsa_history` -> `mpsa_history`.
-        - ✅ Đổi domain xác thực nội bộ thành `@system.com` để tránh xung đột dữ liệu cũ.
-        - ✅ Cập nhật `LoginView`: Chỉ hiển thị các Quick Demo buttons có trong database thật.
-        - ✅ Dùng API Script khởi tạo tự động toàn bộ tài khoản an toàn không cần chạy SQL tay.
     - **Kết quả**: App hoạt động bảo mật. Đăng nhập thành công trên Vercel. Danh sách Site đã có thể truy xuất bình thường qua `authenticated` session.
     - **Bàn giao**: Đã deploy thành công lên Vercel. Ghi chú quản lý Auth lưu tại `docs/auth_guide.md`.
+
+- **2026-05-13: Fix lỗi Thông báo Email & Thêm tính năng Xóa ảnh (v3.4.1) ✅**
+    - **Sửa lỗi Thông báo**: Kiểm tra và xác nhận hệ thống gửi mail hoạt động ổn định tới cả Gmail và Mail công ty (QSR).
+    - **Tính năng mới**: Thêm nút "Xóa ảnh" (dấu x đỏ) cho từng tấm ảnh trong phần Soạn hồ sơ để người dùng dễ dàng loại bỏ ảnh chọn nhầm.
+    - **Bảo mật**: Rà soát lại RLS (Row Level Security) trên Supabase, đảm bảo dữ liệu an toàn.
+    - **Kế hoạch**: Ghi nhận yêu cầu tích hợp thông báo qua **Zalo** cho giai đoạn tiếp theo.
 
 ## 8. Hướng dẫn Đăng nhập Demo (Credentials)
 

@@ -55,12 +55,13 @@
 - [x] Cấu hình Environment Variables trên Vercel.
 - [x] Deploy thành công link production.
 
-### Phase 6.6: Kiểm thử & Hoàn thiện ✅ ĐANG LÀM
+### Phase 6.6: Kiểm thử & Hoàn thiện ✅ HOÀN THÀNH
 - [x] Test toàn bộ trên production.
 - [x] Sửa lỗi giao diện (font size, layout) cho khớp với bản demo cũ.
-- [x] Tích hợp hệ thống thông báo Email qua Resend.
-- [ ] Kiểm tra lại các quy tắc bảo mật (RLS) lần cuối.
-- [ ] Đóng gói tài liệu bàn giao.
+- [x] Tích hợp hệ thống thông báo Email qua Resend (đã chuyển sang Gmail SMTP ổn định).
+- [x] Kiểm tra lại các quy tắc bảo mật (RLS) lần cuối.
+- [x] Đóng gói tài liệu bàn giao.
+- [x] Thêm tính năng xóa ảnh khi soạn hồ sơ.
 
 ## 4. Cấu trúc file hiện tại
 

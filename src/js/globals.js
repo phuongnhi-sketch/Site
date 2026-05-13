@@ -174,22 +174,36 @@ window.STATUS_LABELS = STATUS_LABELS;
             }
         };
 
+        window.renderMultiPreview = () => {
+            const prv = document.getElementById('multi-preview');
+            if (!prv) return;
+            prv.innerHTML = (window.currentInnerImages || []).map((img, idx) => `
+                <div style="position:relative; width:80px; height:80px;">
+                    <img src="${img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;">
+                    <button type="button" onclick="window.removeInnerImage(${idx})" style="position:absolute; top:-5px; right:-5px; width:20px; height:20px; border-radius:50%; background:#EF4444; color:white; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.2);">×</button>
+                </div>
+            `).join('');
+        };
+
+        window.removeInnerImage = (idx) => {
+            if (window.currentInnerImages) {
+                window.currentInnerImages.splice(idx, 1);
+                window.renderMultiPreview();
+            }
+        };
+
         window.prevMulti = async (input) => {
             if (!input.files) return;
             window.currentInnerImages = window.currentInnerImages || [];
-            const prv = document.getElementById('multi-preview');
-            // Reset ui in creation mode
-            if (!window.currentId && window.currentInnerImages.length === 0) prv.innerHTML = '';
-
+            
             for (let f of input.files) {
                 resizeImage(f, (resizedB64) => {
                     window.currentInnerImages.push(resizedB64);
-                    const img = document.createElement('img');
-                    img.src = resizedB64;
-                    img.style = "width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #ddd;";
-                    prv.appendChild(img);
+                    window.renderMultiPreview();
                 });
             }
+            // Clear input so same file can be selected again
+            input.value = '';
         };
 
         window.prev = (i) => {
