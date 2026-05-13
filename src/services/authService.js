@@ -97,14 +97,14 @@ export const AuthService = {
         if (!user) throw new Error('Không tìm thấy tài khoản với email này.');
 
         const { error: otpErr } = await supabase.from('otp_codes').insert({
-            user_id: user.id,
+            user_id: user.id.toString(), // Chuyển sang string cho chắc chắn
             email: email,
             code: otp,
             expires_at: expiresAt
         });
         if (otpErr) {
             console.error('Lỗi lưu OTP:', otpErr);
-            throw new Error('Không thể tạo mã xác thực lúc này.');
+            throw new Error(`Lỗi Database: ${otpErr.message || 'Không thể lưu mã'}`);
         }
 
         // 3. Gửi email qua API nội bộ
