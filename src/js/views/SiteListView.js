@@ -109,7 +109,9 @@ export const SiteListView = {
                         <label style="font-size:0.7rem; font-weight:800; color:var(--accent-blue); display:block; margin-bottom:8px">TRẠNG THÁI</label>
                         <select onchange="window.setFilter('status', this.value)" style="width:100%; padding:10px; border:1px solid #E2E8F0; border-radius:10px; font-size:0.9rem">
                             <option value="ALL" ${filters.status === 'ALL' ? 'selected' : ''}>Tất cả Trạng thái</option>
-                            ${Object.keys(STATUS_LABELS).map(k => `<option value="${k}" ${filters.status === k ? 'selected' : ''}>${STATUS_LABELS[k]}</option>`).join('')}
+                            <option value="PROCESS" ${filters.status === 'PROCESS' ? 'selected' : ''}>Process (Đang xử lý)</option>
+                            <option value="FINISH" ${filters.status === 'FINISH' ? 'selected' : ''}>Complete (Hoàn tất)</option>
+                            <option value="REJECTED" ${filters.status === 'REJECTED' ? 'selected' : ''}>Rejected (Từ chối)</option>
                         </select>
                     </div>
                     <button onclick="window.siteFilters={search:'',region:'ALL',brand:'ALL',status:'ALL',includeQA:false,exportVer:'BOTH'}; if(window.router) window.router.handleRoute();" class="btn-ghost" style="padding:10px; font-size:0.8rem">Làm mới 🔄</button>
