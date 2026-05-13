@@ -9,6 +9,7 @@ import { UserManagementView } from './views/UserManagementView.js';
 import { MapView } from './views/MapView.js';
 import { DetailView as SiteDetailView } from './views/SiteDetailView.js';
 import { NotificationView } from './views/NotificationView.js';
+import { ChangePasswordView } from './views/ChangePasswordView.js';
 
 // Global attach for inline handlers (legacy support for demo.html markup)
 window.DashboardView = DashboardView;
@@ -28,7 +29,8 @@ const routes = [
     { path: '#users', view: UserManagementView, protected: true },
     { path: '#map', view: MapView, protected: true },
     { path: '#detail', view: SiteDetailView, protected: true },
-    { path: '#notifs', view: NotificationView, protected: true }
+    { path: '#notifs', view: NotificationView, protected: true },
+    { path: '#change-password', view: ChangePasswordView, protected: true }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -35,6 +35,7 @@ Danh sách các task cần thực hiện để hoàn thành Site Management Web 
 - [ ] Tính năng **Versioning** tại Gate 3 (Tạo Version 2 từ Version 1).
 - [ ] UI: Switcher giữa Version 1 và Version 2 trong trang chi tiết.
 - [ ] Phân quyền BOD Level 2 (Chặn theo Brand trước khi Finish).
+- [ ] **Tích hợp Zalo Notification**: Gửi thông báo trực tiếp qua Zalo cho các bên liên quan.
 
 ---
 *Ghi chú: Ưu tiên thực hiện theo thứ tự các Phase để đảm báo tính liên mạch.*

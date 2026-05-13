@@ -83,4 +83,84 @@ export const AuthService = {
         if (error) throw error;
         return data;
     },
+
+    /**
+     * Gửi mã OTP đổi mật khẩu qua email.
+     */
+    async requestPasswordResetOTP(email) {
+        // 1. Tạo mã 6 số ngẫu nhiên
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60000).toISOString(); // Hết hạn sau 10 phút
+
+        // 2. Lưu vào bảng otp_codes (Giả định bảng này đã được tạo)
+        const { data: user } = await supabase.from('users').select('id').eq('email', email).single();
+        if (!user) throw new Error('Không tìm thấy tài khoản với email này.');
+
+        const { error: otpErr } = await supabase.from('otp_codes').insert({
+            user_id: user.id,
+            email: email,
+            code: otp,
+            expires_at: expiresAt
+        });
+        if (otpErr) {
+            console.error('Lỗi lưu OTP:', otpErr);
+            throw new Error('Không thể tạo mã xác thực lúc này.');
+        }
+
+        // 3. Gửi email qua API nội bộ
+        const apiUrl = window.location.origin + '/api/send-email';
+        await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                to: email,
+                subject: '[Site Management] Mã xác thực đổi mật khẩu',
+                text: `Mã xác thực của bạn là: ${otp}. Mã này có hiệu lực trong 10 phút.`,
+                html: `
+                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+                        <h2 style="color: #2563EB;">🔐 Mã xác thực đổi mật khẩu</h2>
+                        <p>Chào bạn,</p>
+                        <p>Bạn vừa yêu cầu đổi mật khẩu. Vui lòng sử dụng mã xác thực dưới đây:</p>
+                        <div style="font-size: 2rem; font-weight: 800; color: #2563EB; letter-spacing: 5px; margin: 20px 0; text-align: center; background: #F8FAFC; padding: 15px; border-radius: 8px;">
+                            ${otp}
+                        </div>
+                        <p>Mã này có hiệu lực trong <b>10 phút</b>. Nếu không phải bạn yêu cầu, hãy bỏ qua email này.</p>
+                    </div>
+                `
+            })
+        });
+        return true;
+    },
+
+    /**
+     * Xác thực OTP và đổi mật khẩu mới.
+     */
+    async verifyOTPAndChangePassword(email, otp, newPassword) {
+        // 1. Kiểm tra mã OTP
+        const { data: record, error: fetchErr } = await supabase
+            .from('otp_codes')
+            .select('*')
+            .eq('email', email)
+            .eq('code', otp)
+            .gt('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (fetchErr || !record) {
+            throw new Error('Mã xác thực không đúng hoặc đã hết hạn.');
+        }
+
+        // 2. Cập nhật mật khẩu trong Supabase Auth
+        const { error: authErr } = await supabase.auth.updateUser({ password: newPassword });
+        if (authErr) throw authErr;
+
+        // 3. Cập nhật mật khẩu trong bảng users (Nếu cần đồng bộ như logic cũ)
+        await supabase.from('users').update({ password: newPassword }).eq('email', email);
+
+        // 4. Xóa mã OTP đã dùng
+        await supabase.from('otp_codes').delete().eq('id', record.id);
+
+        return true;
+    }
 };

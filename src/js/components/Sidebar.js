@@ -30,7 +30,14 @@ export const Sidebar = {
                 <div class="sidebar-menu">
                     ${menuHtml}
                 </div>
-                <button id="logout-sidebar-btn" style="color:red; border:none; background:none; cursor:pointer; padding:20px; font-weight:700">Đăng xuất</button>
+                <div style="padding: 20px; border-top: 1px solid var(--border-glass); margin-top: auto; display: flex; flex-direction: column; gap: 10px;">
+                    <a href="#change-password" style="color:var(--text-muted); text-decoration:none; font-size:0.9rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span>🛡️</span> Đổi mật khẩu
+                    </a>
+                    <button id="logout-sidebar-btn" style="color:#EF4444; border:none; background:none; cursor:pointer; font-weight:700; text-align:left; padding:0; display:flex; align-items:center; gap:8px;">
+                        <span>🚪</span> Đăng xuất
+                    </button>
+                </div>
             </aside>
         `;
     },
