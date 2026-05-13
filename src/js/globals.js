@@ -235,11 +235,9 @@ window.STATUS_LABELS = STATUS_LABELS;
                 alert('Đã gửi yêu cầu chỉnh sửa đến Admin!'); 
             } 
         };
-        window.markAllRead = () => {
+        window.markAllRead = async () => {
             const u = store.getState().user;
-            const ns = NotificationService.getNotifs();
-            ns.forEach(n => { if (n.uId === u.id) n.isRead = true; });
-            localStorage.setItem('site_poc_notifs', JSON.stringify(ns));
+            await NotificationService.markAllRead(u.id, u.role);
             location.reload();
         };
         window.delSite = async (id) => { 

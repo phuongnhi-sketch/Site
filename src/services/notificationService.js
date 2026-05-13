@@ -115,6 +115,23 @@ export const NotificationService = {
         await supabase.from('notifications').update({ is_read: true }).eq('id', id);
     },
 
+    async markAllRead(userId, role) {
+        const targets = [userId];
+        if (role === 'ADMIN') targets.push('admin-all');
+        if (role === 'BOD_L1') targets.push('bod_l1-all', 'mb-all', 'project-all', 'bod_l2-all');
+        if (role === 'PROJECT') targets.push('project-all');
+        if (role === 'MB') targets.push('mb-all');
+        if (role === 'BOD_L2') targets.push('bod_l2-all');
+
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .in('user_target', targets)
+            .eq('is_read', false);
+        
+        if (error) console.error('Error marking all read:', error);
+    },
+
     async getUnreadCount(userId, role) {
         const targets = [userId];
         if (role === 'ADMIN') targets.push('admin-all');

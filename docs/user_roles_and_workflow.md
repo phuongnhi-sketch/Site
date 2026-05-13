@@ -66,6 +66,30 @@ Hệ thống tự động lọc dữ liệu và thông báo dựa trên thông t
 
 ---
 
+## 4. Ma trận Hiển thị & Quyền hạn (Chi tiết)
+
+Bảng dưới đây quy định rõ "Ai thấy cái gì" và "Ai được làm gì" tại từng giai đoạn:
+
+| Trạng thái hồ sơ | MB (Người nộp) | Project Team | BOD Level 1/2 | Admin |
+| :--- | :--- | :--- | :--- | :--- |
+| **DRAFT (Nháp)** | Thấy (Chỉ MB chủ) | ❌ Không thấy | ❌ Không thấy | Thấy |
+| **SUBMITTED** | Thấy (Theo vùng) | ❌ Không thấy | Thấy | Thấy |
+| **GATE 1 (Survey)** | Thấy | **Thấy (Bắt đầu)** | Thấy | Thấy |
+| **GATE 2, 3** | Thấy | Thấy | Thấy | Thấy |
+| **FINISH (Xong)** | Thấy (Ẩn giá) | Thấy (Ẩn giá) | Thấy (Ẩn giá) | Thấy hết |
+
+### 🔒 Quy tắc Bảo mật Dữ liệu Tài chính (Giá thuê, Thuế...)
+*   **Team Project**: Hệ thống **luôn luôn che giá** (`*******`). Team này chỉ tập trung vào kỹ thuật và mặt bằng.
+*   **Tất cả các Role (trừ Admin)**: Khi hồ sơ chuyển sang trạng thái **FINISH (Hoàn tất)** hoặc **REJECTED (Từ chối)**, toàn bộ thông tin giá sẽ bị che lại để bảo mật deal.
+*   **Admin**: Luôn thấy dữ liệu gốc trong mọi trường hợp.
+
+### ✍️ Quyền chỉnh sửa đặc biệt
+*   **Sửa MPSA**: Chỉ **ADMIN** mới có nút "Update MPSA". Thường thực hiện sau giai đoạn Survey.
+*   **Sửa nội dung Site**: 
+    *   MB chỉ được sửa khi hồ sơ ở trạng thái `DRAFT`. 
+    *   Nếu muốn sửa khi đã nộp, MB phải bấm nút **"Gửi yêu cầu sửa"**, Admin sẽ bấm **"Unlock"** để đưa hồ sơ về `DRAFT` cho MB sửa.
+    *   Admin có quyền sửa trực tiếp bất cứ lúc nào.
+
 ## 5. Lưu ý cho Quản trị viên (Admin)
 
 *   **Mở khóa bản ghi**: Khi hồ sơ đã nộp, MB sẽ bị khóa quyền sửa. Admin có nút "Unlock" trong trang chi tiết để cho phép MB sửa lại nếu cần.

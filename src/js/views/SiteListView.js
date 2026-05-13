@@ -169,7 +169,12 @@ export const SiteListView = {
                                                 </div>
                                             ` : '---'}
                                         </td>
-                                        <td><span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span></td>
+                                        <td>
+                                            ${(s.status === 'FINISH' || s.status === 'REJECTED') 
+                                                ? `<span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span>`
+                                                : `<span class="status-pill" style="background:#E0F2FE; color:#0369A1; border:1px solid #BAE6FD">PROCESS</span>`
+                                            }
+                                        </td>
                                         <td><span style="font-size:0.75rem; font-weight:800; color:#555">${s.region}</span></td>
                                         <td>
                                             <div style="display:flex; gap:6px">
