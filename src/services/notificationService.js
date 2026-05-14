@@ -1,11 +1,17 @@
 import { supabase } from './supabaseClient.js';
+import { store } from '../js/store.js';
 
 /**
  * NotificationService — CRUD thông báo qua Supabase.
  */
 export const NotificationService = {
     async getNotifs(userId, role) {
-        let query = supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+        const u = store.getState().user;
+        let query = supabase
+            .from('notifications')
+            .select('*, sites(region, brand)')
+            .order('created_at', { ascending: false })
+            .limit(50);
         
         // Fetch specific + role broadcasts
         const targets = [userId];
@@ -19,7 +25,25 @@ export const NotificationService = {
 
         const { data, error } = await query;
         if (error) { console.error('Error fetching notifs:', error); return []; }
-        return data.map(n => ({ id: n.id, uId: n.user_target, msg: n.message, sId: n.site_id, date: n.created_at, isRead: n.is_read }));
+
+        // Lọc theo Region / Brand cho các role hạn chế
+        return data.filter(n => {
+            if (!n.sites) return true; // Thông báo hệ thống không gắn với site nào thì ai cũng thấy
+            if (role === 'MB' || role === 'PROJECT') {
+                return (u.region === 'ALL' || n.sites.region === u.region);
+            }
+            if (role === 'BOD_L2') {
+                return (u.brand === 'ALL' || n.sites.brand === u.brand);
+            }
+            return true;
+        }).map(n => ({ 
+            id: n.id, 
+            uId: n.user_target, 
+            msg: n.message, 
+            sId: n.site_id, 
+            date: n.created_at, 
+            isRead: n.is_read 
+        }));
     },
 
     async add(userId, msg, siteId, shouldEmail = true) {
@@ -118,35 +142,62 @@ export const NotificationService = {
     },
 
     async markAllRead(userId, role) {
+        const u = store.getState().user;
         const targets = [userId];
-        if (role === 'ADMIN') targets.push('admin-all');
-        if (role === 'BOD_L1') targets.push('bod_l1-all', 'mb-all', 'project-all', 'bod_l2-all');
+        if (role === 'ADMIN') targets.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
+        if (role === 'BOD_L1') targets.push('bod_l1-all');
+        if (role === 'BOD_L2') targets.push('bod_l2-all');
         if (role === 'PROJECT') targets.push('project-all');
         if (role === 'MB') targets.push('mb-all');
-        if (role === 'BOD_L2') targets.push('bod_l2-all');
 
-        const { error } = await supabase
+        // Fetch IDs of notifications that this user can see
+        const { data } = await supabase
             .from('notifications')
-            .update({ is_read: true })
+            .select('id, sites(region, brand)')
             .in('user_target', targets)
             .eq('is_read', false);
         
-        if (error) console.error('Error marking all read:', error);
+        if (!data) return;
+
+        const visibleIds = data.filter(n => {
+            if (!n.sites) return true;
+            if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
+            if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
+            return true;
+        }).map(n => n.id);
+
+        if (visibleIds.length > 0) {
+            const { error } = await supabase
+                .from('notifications')
+                .update({ is_read: true })
+                .in('id', visibleIds);
+            if (error) console.error('Error marking all read:', error);
+        }
     },
 
     async getUnreadCount(userId, role) {
+        const u = store.getState().user;
         const targets = [userId];
-        if (role === 'ADMIN') targets.push('admin-all');
+        if (role === 'ADMIN') targets.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
         if (role === 'BOD_L1') targets.push('bod_l1-all');
+        if (role === 'BOD_L2') targets.push('bod_l2-all');
         if (role === 'PROJECT') targets.push('project-all');
+        if (role === 'MB') targets.push('mb-all');
 
-        const { count, error } = await supabase
+        const { data, error } = await supabase
             .from('notifications')
-            .select('*', { count: 'exact', head: true })
+            .select('id, sites(region, brand)')
             .in('user_target', targets)
             .eq('is_read', false);
-        if (error) return 0;
-        return count || 0;
+        
+        if (error || !data) return 0;
+
+        return data.filter(n => {
+            if (!n.sites) return true;
+            if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
+            if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
+            return true;
+        }).length;
     },
 
     async clearAll() {
