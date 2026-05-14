@@ -58,12 +58,11 @@ export const NotificationService = {
 
     async add(userId, msg, siteId, shouldEmail = true) {
         // 1. Lưu vào Database trước (Luôn lưu để hiện trong App)
-        const { error } = await supabase.from('notifications').insert({
+        const { data: newNotif, error } = await supabase.from('notifications').insert({
             user_target: userId, message: msg, site_id: siteId,
-        });
-        if (error) {
-            console.error('Error adding notification to DB:', error);
-        }
+        }).select('id, created_at').single();
+        
+        if (error) console.error('Error adding notification to DB:', error);
 
         // 2. Gửi Email thông báo (Chỉ gửi nếu shouldEmail là true)
         if (shouldEmail) {
@@ -71,62 +70,61 @@ export const NotificationService = {
                 let emails = [];
                 
                 if (userId.includes('-all')) {
-                    // Lấy email của tất cả user thuộc role đó
-                    const roleMap = { 
-                        'admin-all': 'ADMIN', 
-                        'project-all': 'PROJECT', 
-                        'bod_l1-all': 'BOD_L1',
-                        'bod_l2-all': 'BOD_L2',
-                        'mb-all': 'MB'
-                    };
+                    const roleMap = { 'admin-all':'ADMIN', 'project-all':'PROJECT', 'bod_l1-all':'BOD_L1', 'bod_l2-all':'BOD_L2', 'mb-all':'MB' };
                     const targetRole = roleMap[userId];
                     if (targetRole) {
-                        let query = supabase.from('users').select('email, region, brand').eq('role', targetRole).eq('is_active', true);
-                        const { data: users } = await query;
-                        
+                        const { data: users } = await supabase.from('users').select('email, region, brand').eq('role', targetRole).eq('is_active', true);
                         if (users && users.length > 0) {
-                            if (siteId && (targetRole === 'MB' || targetRole === 'BOD_L2')) {
-                                // Lấy thông tin site để lọc vùng miền/brand
+                            if (siteId && (targetRole === 'MB' || targetRole === 'BOD_L2' || targetRole === 'PROJECT')) {
                                 const { data: site } = await supabase.from('sites').select('region, brand').eq('id', siteId).single();
-                                if (site) {
-                                    emails = users.filter(u => {
-                                        if (targetRole === 'MB' || targetRole === 'PROJECT') {
-                                            // MB & Project: Chỉ lọc theo Vùng miền
-                                            return (u.region === 'ALL' || u.region === site.region);
-                                        }
-                                        if (targetRole === 'BOD_L2') {
-                                            // BOD L2: Chỉ lọc theo Thương hiệu
-                                            return (u.brand === 'ALL' || u.brand === site.brand);
-                                        }
-                                        return true;
-                                    }).map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
-                                } else {
-                                    emails = users.map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
-                                }
+                                emails = users.filter(u => {
+                                    if (targetRole === 'MB' || targetRole === 'PROJECT') return (u.region === 'ALL' || u.region === site?.region);
+                                    if (targetRole === 'BOD_L2') return (u.brand === 'ALL' || u.brand === site?.brand);
+                                    return true;
+                                }).map(u => u.email);
                             } else {
-                                // Admin/BOD L1 nhận tất cả
-                                emails = users.map(u => u.email).filter(e => !!e && !e.endsWith('@system.com'));
+                                emails = users.map(u => u.email);
                             }
                         }
                     }
                 } else {
-                    // Lấy email của 1 user cụ thể
                     const { data } = await supabase.from('users').select('email').eq('id', userId).single();
-                    if (data && data.email && !data.email.endsWith('@system.com')) {
-                        emails = [data.email];
-                    }
+                    if (data?.email) emails = [data.email];
                 }
 
+                // Lọc bỏ email hệ thống và email rỗng
+                emails = emails.filter(e => !!e && !e.endsWith('@system.com'));
+
                 if (emails.length > 0) {
-                    console.log('Sending notification email to:', emails);
+                    // Kiểm tra xem có cần gửi kép không (Greylisting Bypass cho qsrvietnam)
+                    let doubleSend = false;
+                    const hasQsrTarget = emails.some(e => e.includes('qsrvietnam'));
+                    
+                    if (hasQsrTarget && newNotif) {
+                        const { data: prevNotif } = await supabase
+                            .from('notifications')
+                            .select('created_at')
+                            .eq('user_target', userId)
+                            .lt('id', newNotif.id)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+                        
+                        if (!prevNotif || (new Date(newNotif.created_at) - new Date(prevNotif.created_at) > 24 * 60 * 60 * 1000)) {
+                            doubleSend = true;
+                        }
+                    }
+
+                    console.log(`Sending email (doubleSend: ${doubleSend}) to:`, emails);
                     const apiUrl = window.location.origin + '/api/send-email';
-                    const res = await fetch(apiUrl, {
+                    await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             to: emails,
                             subject: '[Site Management] Thông báo mới',
                             text: msg,
+                            doubleSend: doubleSend,
                             html: `
                                 <div style="font-family: sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 12px;">
                                     <h2 style="color: #2563EB;">🔔 Thông báo từ Site Management</h2>
@@ -138,8 +136,6 @@ export const NotificationService = {
                             `
                         })
                     });
-                    const result = await res.json();
-                    console.log('Email API response:', result);
                 }
             } catch (err) {
                 console.error('Error sending notification email:', err);
