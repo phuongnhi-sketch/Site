@@ -9,9 +9,11 @@ export const NotificationService = {
         
         // Fetch specific + role broadcasts
         const targets = [userId];
-        if (role === 'ADMIN') targets.push('admin-all');
+        if (role === 'ADMIN') targets.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
         if (role === 'BOD_L1') targets.push('bod_l1-all');
+        if (role === 'BOD_L2') targets.push('bod_l2-all');
         if (role === 'PROJECT') targets.push('project-all');
+        if (role === 'MB') targets.push('mb-all');
         
         query = query.in('user_target', targets);
 

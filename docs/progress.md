@@ -67,6 +67,11 @@ Tài liệu theo dõi trạng thái và tiến độ tổng thể của dự án
     - **Tài liệu**: Hoàn thiện Ma trận hiển thị và Quyền hạn tại `docs/user_roles_and_workflow.md`.
     - **Hủy bỏ**: Dừng kế hoạch tích hợp Zalo theo yêu cầu của người dùng.
 
+- **2026-05-14: Fix Lỗi Thông báo khi nộp Site mới & Tầm nhìn Web Noti ✅**
+    - **Sửa lỗi nộp Site mới**: Bổ sung lệnh kích hoạt thông báo tự động cho Admin/BOD khi có hồ sơ mới được nộp.
+    - **Tầm nhìn Thông báo**: Mở rộng quyền xem thông báo chung cho các cấp MB và BOD L2 trên giao diện Web.
+    - **Bảo mật**: Duy trì quy tắc chặn gửi mail thật đến đuôi `@system.com` theo yêu cầu của người dùng.
+
 ## 8. Hướng dẫn Đăng nhập Demo (Credentials)
 
 > [!IMPORTANT]

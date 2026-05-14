@@ -167,6 +167,15 @@ window.STATUS_LABELS = STATUS_LABELS;
                 code: (st === 'SUBMITTED' || st === 'GATE1' || st === 'UPDATE_V2') ? (exSite?.code || 'MB-' + Math.floor(Math.random() * 9000 + 1000)) : (exSite ? exSite.code : '')
             };
             if (await SiteService.save(site)) {
+                if (st === 'SUBMITTED') {
+                    // Thông báo cho Admin và BOD khi có hồ sơ mới nộp (Web + Email)
+                    const msg = `🆕 Có hồ sơ mới: ${site.name} (Gửi bởi ${site.owner_name})`;
+                    await NotificationService.add('admin-all', msg, site.id, true);
+                    await NotificationService.add('bod_l1-all', msg, site.id, true);
+                    await NotificationService.add('bod_l2-all', msg, site.id, true);
+                    // Thông báo cho chính người nộp (Chỉ Web)
+                    await NotificationService.add(site.owner_id, `✅ Bạn đã nộp hồ sơ ${site.name} thành công.`, site.id, false);
+                }
                 alert('Đã lưu hồ sơ thành công!');
                 window.editingV2 = false;
                 window.currentId = null;

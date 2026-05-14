@@ -8,7 +8,7 @@ export const SiteListView = {
             window.siteFilters = { search: '', region: 'ALL', brand: 'ALL', status: 'ALL', includeQA: false, exportVer: 'BOTH' };
         }
         const filters = window.siteFilters;
-        
+
         // Fetch and filter sites
         let sites = await SiteService.getSites();
         sites = sites.filter(s => {
@@ -28,8 +28,8 @@ export const SiteListView = {
             return u.role === 'MB' ? s.region === u.region : false;
         }).filter(s => {
             const sBrand = (s.brand || s.answers?.f0 || '').toUpperCase();
-            const matchSearch = (s.name || '').toLowerCase().includes(filters.search.toLowerCase()) || 
-                              (s.code && s.code.toLowerCase().includes(filters.search.toLowerCase()));
+            const matchSearch = (s.name || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+                (s.code && s.code.toLowerCase().includes(filters.search.toLowerCase()));
             const matchRegion = filters.region === 'ALL' || s.region === filters.region;
             const matchBrand = filters.brand === 'ALL' || sBrand.includes(filters.brand);
             const matchStatus = filters.status === 'ALL' || s.status === filters.status;
@@ -109,9 +109,9 @@ export const SiteListView = {
                         <label style="font-size:0.7rem; font-weight:800; color:var(--accent-blue); display:block; margin-bottom:8px">TRẠNG THÁI</label>
                         <select onchange="window.setFilter('status', this.value)" style="width:100%; padding:10px; border:1px solid #E2E8F0; border-radius:10px; font-size:0.9rem">
                             <option value="ALL" ${filters.status === 'ALL' ? 'selected' : ''}>Tất cả Trạng thái</option>
-                            <option value="PROCESS" ${filters.status === 'PROCESS' ? 'selected' : ''}>Process (Đang xử lý)</option>
-                            <option value="FINISH" ${filters.status === 'FINISH' ? 'selected' : ''}>Complete (Hoàn tất)</option>
-                            <option value="REJECTED" ${filters.status === 'REJECTED' ? 'selected' : ''}>Rejected (Từ chối)</option>
+                            <option value="PROCESS" ${filters.status === 'PROCESS' ? 'selected' : ''}>Process</option>
+                            <option value="FINISH" ${filters.status === 'FINISH' ? 'selected' : ''}>Complete</option>
+                            <option value="REJECTED" ${filters.status === 'REJECTED' ? 'selected' : ''}>Rejected</option>
                         </select>
                     </div>
                     <button onclick="window.siteFilters={search:'',region:'ALL',brand:'ALL',status:'ALL',includeQA:false,exportVer:'BOTH'}; if(window.router) window.router.handleRoute();" class="btn-ghost" style="padding:10px; font-size:0.8rem">Làm mới 🔄</button>
@@ -137,12 +137,12 @@ export const SiteListView = {
                         </thead>
                         <tbody>
                             ${sites.map(s => {
-                                const displayData = SiteService.getLatestData(s);
-                                const sName = displayData.f1 || s.name;
-                                const sPrice = displayData.f2_2 || s.price;
-                                const sBrand = displayData.f0 || s.brand;
+            const displayData = SiteService.getLatestData(s);
+            const sName = displayData.f1 || s.name;
+            const sPrice = displayData.f2_2 || s.price;
+            const sBrand = displayData.f0 || s.brand;
 
-                                return `
+            return `
                                     <tr>
                                         <td style="padding-left:1.5rem"><input type="checkbox" class="site-checkbox" data-id="${s.id}" style="width:18px; height:18px; cursor:pointer"></td>
                                         <td>
@@ -172,10 +172,10 @@ export const SiteListView = {
                                             ` : '---'}
                                         </td>
                                         <td>
-                                            ${(s.status === 'FINISH' || s.status === 'REJECTED') 
-                                                ? `<span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span>`
-                                                : `<span class="status-pill" style="background:#E0F2FE; color:#0369A1; border:1px solid #BAE6FD">PROCESS</span>`
-                                            }
+                                            ${(s.status === 'FINISH' || s.status === 'REJECTED')
+                    ? `<span class="status-pill status-${s.status}">${STATUS_LABELS[s.status]}</span>`
+                    : `<span class="status-pill" style="background:#E0F2FE; color:#0369A1; border:1px solid #BAE6FD">PROCESS</span>`
+                }
                                         </td>
                                         <td><span style="font-size:0.75rem; font-weight:800; color:#555">${s.region}</span></td>
                                         <td>
@@ -186,7 +186,7 @@ export const SiteListView = {
                                             </div>
                                         </td>
                                     </tr>`;
-                            }).join('')}
+        }).join('')}
                         </tbody>
                     </table>
                 </div>
