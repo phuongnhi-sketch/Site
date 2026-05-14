@@ -13,37 +13,47 @@ export const NotificationService = {
             .order('created_at', { ascending: false })
             .limit(50);
         
-        // Fetch specific + role broadcasts
-        const targets = [userId];
-        if (role === 'ADMIN') targets.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
-        if (role === 'BOD_L1') targets.push('bod_l1-all');
-        if (role === 'BOD_L2') targets.push('bod_l2-all');
-        if (role === 'PROJECT') targets.push('project-all');
-        if (role === 'MB') targets.push('mb-all');
-        
+        const targets = this._getTargets(userId, role);
         query = query.in('user_target', targets);
 
         const { data, error } = await query;
         if (error) { console.error('Error fetching notifs:', error); return []; }
 
-        // Lọc theo Region / Brand cho các role hạn chế
-        return data.filter(n => {
-            if (!n.sites) return true; // Thông báo hệ thống không gắn với site nào thì ai cũng thấy
-            if (role === 'MB' || role === 'PROJECT') {
-                return (u.region === 'ALL' || n.sites.region === u.region);
-            }
-            if (role === 'BOD_L2') {
-                return (u.brand === 'ALL' || n.sites.brand === u.brand);
-            }
-            return true;
-        }).map(n => ({ 
-            id: n.id, 
-            uId: n.user_target, 
-            msg: n.message, 
-            sId: n.site_id, 
-            date: n.created_at, 
-            isRead: n.is_read 
+        let list = data.filter(n => this._filterByScope(n, u, role)).map(n => ({ 
+            id: n.id, uId: n.user_target, msg: n.message, sId: n.site_id, date: n.created_at, isRead: n.is_read 
         }));
+
+        // Khử trùng cho Admin (nếu cùng site và cùng tin nhắn)
+        if (role === 'ADMIN') {
+            const seen = new Set();
+            list = list.filter(n => {
+                const key = `${n.sId}-${n.msg}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+        return list;
+    },
+
+    // Helper: Định nghĩa các nhóm mục tiêu theo Role
+    _getTargets(userId, role) {
+        const t = [userId];
+        if (role === 'ADMIN') t.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
+        else if (role === 'BOD_L1') t.push('bod_l1-all');
+        else if (role === 'BOD_L2') t.push('bod_l2-all');
+        else if (role === 'PROJECT') t.push('project-all');
+        else if (role === 'MB') t.push('mb-all');
+        return t;
+    },
+
+    // Helper: Lọc theo Vùng miền / Brand
+    _filterByScope(n, u, role) {
+        if (!n.sites) return true;
+        if (role === 'ADMIN' || role === 'BOD_L1') return true;
+        if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
+        if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
+        return true;
     },
 
     async add(userId, msg, siteId, shouldEmail = true) {
@@ -143,55 +153,48 @@ export const NotificationService = {
 
     async markAllRead(userId, role) {
         const u = store.getState().user;
-        const targets = [userId, 'admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all'];
-        
-        // Fetch ALL unread notifications for these targets
-        const { data, error: fetchErr } = await supabase
+        const targets = this._getTargets(userId, role);
+
+        const { data } = await supabase
             .from('notifications')
-            .select('id, user_target, sites(region, brand)')
+            .select('id, message, site_id, sites(region, brand)')
             .in('user_target', targets)
             .eq('is_read', false);
         
-        if (fetchErr || !data || data.length === 0) return;
+        if (!data) return;
 
-        // Lọc theo Region / Brand tương tự như khi hiển thị
-        const visibleIds = data.filter(n => {
-            if (role === 'ADMIN' || role === 'BOD_L1') return true; // Admin/BOD L1 thấy hết
-            if (!n.sites) return true;
-            if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
-            if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
-            return true;
-        }).map(n => n.id);
+        const visibleIds = data.filter(n => this._filterByScope(n, u, role)).map(n => n.id);
 
         if (visibleIds.length > 0) {
-            console.log(`Admin marking ${visibleIds.length} notifications as read`);
-            const { error: updateErr } = await supabase
-                .from('notifications')
-                .update({ is_read: true })
-                .in('id', visibleIds);
-            if (updateErr) console.error('Error updating notifications:', updateErr);
+            await supabase.from('notifications').update({ is_read: true }).in('id', visibleIds);
         }
     },
 
     async getUnreadCount(userId, role) {
         const u = store.getState().user;
-        const targets = [userId, 'admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all'];
+        const targets = this._getTargets(userId, role);
 
         const { data, error } = await supabase
             .from('notifications')
-            .select('id, user_target, sites(region, brand)')
+            .select('id, message, site_id, sites(region, brand)')
             .in('user_target', targets)
             .eq('is_read', false);
         
         if (error || !data) return 0;
 
-        return data.filter(n => {
-            if (role === 'ADMIN' || role === 'BOD_L1') return true;
-            if (!n.sites) return true;
-            if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
-            if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
-            return true;
-        }).length;
+        let filtered = data.filter(n => this._filterByScope(n, u, role));
+        
+        // Khử trùng khi đếm cho Admin
+        if (role === 'ADMIN') {
+            const seen = new Set();
+            filtered = filtered.filter(n => {
+                const key = `${n.site_id}-${n.message}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+        return filtered.length;
     },
 
     async clearAll() {
