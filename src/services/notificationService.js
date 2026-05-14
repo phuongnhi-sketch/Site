@@ -143,23 +143,20 @@ export const NotificationService = {
 
     async markAllRead(userId, role) {
         const u = store.getState().user;
-        const targets = [userId];
-        if (role === 'ADMIN') targets.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
-        if (role === 'BOD_L1') targets.push('bod_l1-all');
-        if (role === 'BOD_L2') targets.push('bod_l2-all');
-        if (role === 'PROJECT') targets.push('project-all');
-        if (role === 'MB') targets.push('mb-all');
-
-        // Fetch IDs of notifications that this user can see
-        const { data } = await supabase
+        const targets = [userId, 'admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all'];
+        
+        // Fetch ALL unread notifications for these targets
+        const { data, error: fetchErr } = await supabase
             .from('notifications')
-            .select('id, sites(region, brand)')
+            .select('id, user_target, sites(region, brand)')
             .in('user_target', targets)
             .eq('is_read', false);
         
-        if (!data) return;
+        if (fetchErr || !data || data.length === 0) return;
 
+        // Lọc theo Region / Brand tương tự như khi hiển thị
         const visibleIds = data.filter(n => {
+            if (role === 'ADMIN' || role === 'BOD_L1') return true; // Admin/BOD L1 thấy hết
             if (!n.sites) return true;
             if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
             if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
@@ -167,32 +164,29 @@ export const NotificationService = {
         }).map(n => n.id);
 
         if (visibleIds.length > 0) {
-            const { error } = await supabase
+            console.log(`Admin marking ${visibleIds.length} notifications as read`);
+            const { error: updateErr } = await supabase
                 .from('notifications')
                 .update({ is_read: true })
                 .in('id', visibleIds);
-            if (error) console.error('Error marking all read:', error);
+            if (updateErr) console.error('Error updating notifications:', updateErr);
         }
     },
 
     async getUnreadCount(userId, role) {
         const u = store.getState().user;
-        const targets = [userId];
-        if (role === 'ADMIN') targets.push('admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all');
-        if (role === 'BOD_L1') targets.push('bod_l1-all');
-        if (role === 'BOD_L2') targets.push('bod_l2-all');
-        if (role === 'PROJECT') targets.push('project-all');
-        if (role === 'MB') targets.push('mb-all');
+        const targets = [userId, 'admin-all', 'bod_l1-all', 'bod_l2-all', 'mb-all', 'project-all'];
 
         const { data, error } = await supabase
             .from('notifications')
-            .select('id, sites(region, brand)')
+            .select('id, user_target, sites(region, brand)')
             .in('user_target', targets)
             .eq('is_read', false);
         
         if (error || !data) return 0;
 
         return data.filter(n => {
+            if (role === 'ADMIN' || role === 'BOD_L1') return true;
             if (!n.sites) return true;
             if (role === 'MB' || role === 'PROJECT') return (u.region === 'ALL' || n.sites.region === u.region);
             if (role === 'BOD_L2') return (u.brand === 'ALL' || n.sites.brand === u.brand);
